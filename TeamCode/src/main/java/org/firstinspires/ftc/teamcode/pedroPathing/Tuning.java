@@ -24,6 +24,25 @@ import com.pedropathing.util.*;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.IgnoreConfigurable;
+import com.bylazar.configurables.PanelsConfigurables;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/*
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1183,15 +1202,21 @@ class Circle extends OpMode {
  * @author Lazar - 19234
  * @version 1.1, 5/19/2025
  */
+/**
+ * This is the Drawing class. It handles the drawing of stuff on Panels Dashboard, like the robot.
+ *
+ * @author Lazar - 19234
+ * @version 1.1, 5/19/2025
+ */
 class Drawing {
     public static final double ROBOT_RADIUS = 9; // woah
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
-            "", "#3F51B5", 0.75
+            "", "#3F51B5", 0.0
     );
     private static final Style historyLook = new Style(
-            "", "#4CAF50", 0.75
+            "", "#4CAF50", 0.0
     );
 
     /**
