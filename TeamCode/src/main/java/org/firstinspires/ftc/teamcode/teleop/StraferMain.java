@@ -73,7 +73,7 @@ public class StraferMain extends LinearOpMode{
         belt = hardwareMap.get(DcMotor.class, "belt");
 
         // The camera also needs a hardware map
-        cam = hardwareMap.get(Limelight3A.class, "cam");
+        //cam = hardwareMap.get(Limelight3A.class, "cam");
 
         // Zero power behaviors are set for the motors
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -99,7 +99,7 @@ public class StraferMain extends LinearOpMode{
 
         speed = mainSpeed;
         blocker.scaleRange(blockPos, openPos);
-        cam.pipelineSwitch(0);
+        //cam.pipelineSwitch(0);
 
         // The robot waits for the opmode to become active
         waitForStart();
@@ -171,6 +171,43 @@ public class StraferMain extends LinearOpMode{
                     case 2: // Free mode, the robot has zero presets and the drivers have full control
                         if (gamepad1.dpad_down || gamepad2.dpad_down)
                             robotMode = 0;
+
+                        belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+                        // MAIN DRIVER CONTROLS
+
+                        // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
+                        // We negate this value so that the topmost position corresponds to maximum forward power.
+                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
+                        // We negate this value so that the topmost position corresponds to maximum forward power.
+                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+
+                        speed = mainSpeed;
+
+                        // ACCESSORY DRIVER CONTROLS
+
+                        if (gamepad2.right_bumper)
+                            belt.setPower(0.2);
+                        else if (gamepad2.left_bumper)
+                            belt.setPower(-0.2);
+                        else
+                            belt.setPower(0);
+
+                        if (gamepad2.x)
+                            ls.setPower(1);
+                        else if (gamepad2.y)
+                            ls.setPower(-1);
+                        else if (gamepad2.a)
+                            rs.setPower(1);
+                        else if (gamepad2.b)
+                            rs.setPower(-1);
+                        else{
+                            ls.setPower(0);
+                            rs.setPower(0);
+                        }
                 }
 
                 if (gamepad1.dpad_left) // Starts mode selection to switch modes
@@ -182,6 +219,7 @@ public class StraferMain extends LinearOpMode{
     // ACCESSORY METHODS
 
     private void moveBelt(int direction){
+        belt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         if (belt.getPower() < beltSpeed)
             belt.setTargetPosition(belt.getCurrentPosition() + (1 * direction));
         belt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
