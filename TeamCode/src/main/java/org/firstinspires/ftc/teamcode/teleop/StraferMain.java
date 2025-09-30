@@ -47,7 +47,7 @@ public class StraferMain extends LinearOpMode{
     private double speed;
     private double turnMult = 1.6;
     private double slowMult = 0.4;
-    private double fastMult = 1.8;
+    private double fastMult = 2.0;
 
     private double shootSpeed = 1;
     private double beltSpeed = 0.3;
@@ -130,11 +130,11 @@ public class StraferMain extends LinearOpMode{
 
                         // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
                         // We negate this value so that the topmost position corresponds to maximum forward power.
-                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        lb.setPower(turnMult * -gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
                         // We negate this value so that the topmost position corresponds to maximum forward power.
-                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        lf.setPower(turnMult * -gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
                         if (gamepad1.left_bumper)
@@ -187,15 +187,15 @@ public class StraferMain extends LinearOpMode{
                         // MAIN DRIVER CONTROLS
 
                         // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
-                        // We negate this value so that the topmost position corresponds to maximum forward power.
-                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        //We negate this value so that the topmost position corresponds to maximum forward power.
+                        /* lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
                         // We negate this value so that the topmost position corresponds to maximum forward power.
                         lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
-                        speed = mainSpeed;
+                        speed = mainSpeed; */
 
                         // ACCESSORY DRIVER CONTROLS
 

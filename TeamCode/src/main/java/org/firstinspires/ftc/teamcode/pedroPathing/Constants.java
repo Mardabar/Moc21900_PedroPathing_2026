@@ -16,19 +16,24 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
+            //.forwardZeroPowerAcceleration(-38.64)
             .mass(4.808079);
+
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             // Check issue with either wheels or wiring of motors because drive code is not working atm
-            .maxPower(.4)
+            .maxPower(1)
+            .xVelocity(55.8)
+            .yVelocity(67.4)
+
             .rightFrontMotorName("rf")
             .rightRearMotorName("rb")
             .leftRearMotorName("lb")
             .leftFrontMotorName("lf")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -40,12 +45,12 @@ public class Constants {
                 .build();
     }
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-3.5)
-            .strafePodX(-3.6875)
+            .forwardPodY(3.5)
+            .strafePodX(3.6875)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
-            // Need to change forward encoder values
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
+            //If running into issue with pods later keep in mind the x is y and y is x, no clue why but otherwise values wouldnt work
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 }
