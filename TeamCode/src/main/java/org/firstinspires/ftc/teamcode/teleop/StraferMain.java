@@ -109,11 +109,11 @@ public class StraferMain extends LinearOpMode{
                     robotMode = 0;
                     modeSelected = true;
                 }
-                else if (gamepad1.dpad_up){
+                else if (gamepad1.dpad_right){
                     robotMode = 1;
                     modeSelected = true;
                 }
-                else if (gamepad1.dpad_right){
+                else if (gamepad1.dpad_up){
                     robotMode = 2;
                     modeSelected = true;
                 }
@@ -121,21 +121,14 @@ public class StraferMain extends LinearOpMode{
                 // This only runs when a mode is selected
                 switch (robotMode) {
                     case 0: // Regular mode, the robot has basic presets and main controls given to the drivers
-                        if (gamepad1.dpad_left) {
-                            modeSelected = false;
-                            break;
-                        }
 
                         // MAIN DRIVER CONTROLS
 
-                        // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
-                        // We negate this value so that the topmost position corresponds to maximum forward power.
                         lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
-                        // We negate this value so that the topmost position corresponds to maximum forward power.
-                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+
+                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
                         if (gamepad1.left_bumper)
                             speed = mainSpeed * slowMult;
@@ -169,57 +162,53 @@ public class StraferMain extends LinearOpMode{
                         break;
 
                     case 1: // Auto mode, the robot has very complex presets with minimal control to the drivers
-                        if (gamepad1.dpad_left) {
-                            modeSelected = false;
-                            break;
-                        }
+
 
                         break;
 
                     case 2: // Free mode, the robot has zero presets and the drivers have full control
-                        if (gamepad1.dpad_left) {
-                            modeSelected = false;
-                            break;
-                        }
-
-                        belt.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
                         // MAIN DRIVER CONTROLS
 
-                        // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
-                        // We negate this value so that the topmost position corresponds to maximum forward power.
-                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        // The Y axis of a joystick ranges from -1 in its topmost position to +1 in its bottommost position.
-                        // We negate this value so that the topmost position corresponds to maximum forward power.
-                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
-                        speed = mainSpeed;
+                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
-                        // ACCESSORY DRIVER CONTROLS
-
-                        if (gamepad2.right_bumper)
-                            belt.setPower(0.2);
-                        else if (gamepad2.left_bumper)
-                            belt.setPower(-0.2);
+                        if (gamepad1.left_bumper)
+                            speed = mainSpeed * slowMult;
+                        else if (gamepad1.right_bumper)
+                            speed = mainSpeed * fastMult;
                         else
-                            belt.setPower(0);
+                            speed = mainSpeed;
 
-                        if (gamepad2.x)
-                            ls.setPower(1);
-                        else if (gamepad2.y)
-                            ls.setPower(-1);
-                        else if (gamepad2.a)
-                            rs.setPower(1);
-                        else if (gamepad2.b)
-                            rs.setPower(-1);
+                        if (gamepad1.left_trigger > 0.2){
+                            moveBelt(1);
+                            //blocker.setPosition(1);
+                        }
+                        else if (gamepad1.a){
+                            moveBelt(-1);
+                            //blocker.setPosition(1);
+                        }
+                        else if (gamepad1.right_trigger > 0.2){
+                            moveBelt(1);
+                            ls.setPower(shootSpeed);
+                            rs.setPower(shootSpeed);
+                            //blocker.setPosition(0);
+                        }
                         else{
                             ls.setPower(0);
                             rs.setPower(0);
+                            //blocker.setPosition(0);
                         }
 
                         break;
+                }
+
+                if (gamepad1.dpad_left) {
+                    modeSelected = false;
+                    break;
                 }
             }
         }
