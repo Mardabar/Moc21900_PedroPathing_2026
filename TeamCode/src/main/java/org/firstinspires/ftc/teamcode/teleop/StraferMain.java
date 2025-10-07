@@ -33,6 +33,7 @@ public class StraferMain extends LinearOpMode{
     private DcMotor ls;
     private DcMotor rs;
     private DcMotor belt;
+    private DcMotor elbow;
 
     //private Servo blocker;
 
@@ -49,11 +50,20 @@ public class StraferMain extends LinearOpMode{
     private double slowMult = 0.4;
     private double fastMult = 1.8;
 
-    private double shootSpeed = 1;
     private double beltSpeed = 0.3;
 
     private double blockPos = 0;
     private double openPos = 1;
+
+    // SHOOTING CONSTANTS
+
+    private final double VEL_CONST = 0.025;
+    private final double ANGLE_CONST = 0.5;
+    private final double MAX_HEIGHT = 110;
+
+    private double shootVel;
+    private double shootAngle;
+
 
     // OTHER VARS
 
@@ -70,6 +80,7 @@ public class StraferMain extends LinearOpMode{
         ls = hardwareMap.get(DcMotor.class, "ls");
         rs = hardwareMap.get(DcMotor.class, "rs");
         belt = hardwareMap.get(DcMotor.class, "belt");
+        elbow = hardwareMap.get(DcMotor.class, "elbow");
 
         // The camera also needs a hardware map
         //cam = hardwareMap.get(Limelight3A.class, "cam");
@@ -82,6 +93,7 @@ public class StraferMain extends LinearOpMode{
         ls.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         belt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Motor direction is set for straight forward values
         lb.setDirection(DcMotor.Direction.REVERSE);
@@ -91,6 +103,7 @@ public class StraferMain extends LinearOpMode{
         ls.setDirection(DcMotor.Direction.REVERSE);
         rs.setDirection(DcMotor.Direction.FORWARD);
         belt.setDirection(DcMotor.Direction.FORWARD);
+        elbow.setDirection(DcMotor.Direction.FORWARD);
 
         belt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         belt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -149,8 +162,7 @@ public class StraferMain extends LinearOpMode{
                         }
                         else if (gamepad2.a){
                             moveBelt(1);
-                            ls.setPower(shootSpeed);
-                            rs.setPower(shootSpeed);
+                            //setShootPos();
                             //blocker.setPosition(0);
                         }
                         else{
@@ -193,8 +205,7 @@ public class StraferMain extends LinearOpMode{
                         }
                         else if (gamepad1.right_trigger > 0.2){
                             moveBelt(1);
-                            ls.setPower(shootSpeed);
-                            rs.setPower(shootSpeed);
+                            //setShootPos();
                             //blocker.setPosition(0);
                         }
                         else{
@@ -221,5 +232,43 @@ public class StraferMain extends LinearOpMode{
         if (belt.getPower() < beltSpeed)
             belt.setTargetPosition(belt.getCurrentPosition() + (1 * direction));
         belt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    // This method sets the speed of the shooter motors and the angle of the shooting position
+    private void setShootPos(double ix, double iy, double fx, double fy){
+        // Temporary vars are created to set the actual vars at the end of the method
+        // dist is the total distance the ball will travel and halfDist is half the distance, therefore the max height the ball will reach
+        double dist = 0.5 * (Math.abs(fx - ix) * Math.abs(fy - iy));
+        double angle = elbow.getCurrentPosition() / ANGLE_CONST;
+        double speed = 1;
+        double halfDist = dist / 2;
+
+        // Now the while loop starts, which will constantly adjust the speed and the angle until the right path is calculated
+        while (shootPosCalc(halfDist, speed, angle) < MAX_HEIGHT - 1 && shootPosCalc(halfDist, speed, angle) > MAX_HEIGHT + 1 &&
+                shootPosCalc(dist, speed, angle) < -1 && shootPosCalc(dist, speed, angle) > 1){
+            if (shootPosCalc(dist, speed, angle) < -1){
+                speed += 0.5;
+            }
+            else if (shootPosCalc(dist, speed, angle) > 1){
+                speed -= 0.5;
+            }
+
+            if (shootPosCalc(halfDist, speed, angle) < MAX_HEIGHT - 1){
+                angle += 0.2;
+            }
+            else if (shootPosCalc(halfDist, speed, angle) > MAX_HEIGHT + 1) {
+                angle -= 0.2;
+            }
+        }
+
+        // The global shooter velocity is now set to the speed calulated in this method, as well as the global angle set to the calulated angle
+        shootVel = speed;
+        shootAngle = angle;
+    }
+
+    // This is the function used to determine the heights for the adjustments done in the setShootPos method
+    private double shootPosCalc(double tempDist, double speed, double angle){
+        double calc = tempDist * Math.tan(angle) - 9.8 / (2 * Math.pow(speed, 2) * Math.pow(Math.cos(angle), 2)) * Math.pow(tempDist, 2);
+        return calc;
     }
 }
