@@ -63,6 +63,9 @@ public class StraferMain extends LinearOpMode{
 
     private double shootVel;
     private double shootAngle;
+    private double shootPow;
+    private boolean shootPrep;
+    private boolean shootReady;
 
 
     // OTHER VARS
@@ -110,6 +113,8 @@ public class StraferMain extends LinearOpMode{
         belt.setPower(beltSpeed);
 
         speed = mainSpeed;
+        shootReady = false;
+        shootPrep = false;
         //blocker.scaleRange(blockPos, openPos);
         //cam.pipelineSwitch(0);
 
@@ -160,16 +165,21 @@ public class StraferMain extends LinearOpMode{
                             moveBelt(-1);
                             //blocker.setPosition(1);
                         }
-                        else if (gamepad2.a){
-                            moveBelt(1);
-                            //setShootPos();
+                        else if (gamepad2.a && !shootPrep && !shootReady){
+                            setShootPos(0, 0, 0, 0);
                             //blocker.setPosition(0);
+                            shootPrep = true;
                         }
-                        else{
-                            ls.setPower(0);
-                            rs.setPower(0);
+                        else
                             //blocker.setPosition(0);
+
+                        if (gamepad2.a && shootReady){
+                            shootPow = velToPow(shootVel);
+                            ls.setPower(shootPow);
+                            rs.setPower(shootPow);
                         }
+                        else
+                            shootReady = false;
 
                         break;
 
@@ -203,16 +213,24 @@ public class StraferMain extends LinearOpMode{
                             moveBelt(-1);
                             //blocker.setPosition(1);
                         }
-                        else if (gamepad1.right_trigger > 0.2){
-                            moveBelt(1);
-                            //setShootPos();
+                        else if (gamepad1.right_trigger > 0.2 && !shootPrep && !shootReady){
+                            setShootPos(0, 0, 0, 0);
                             //blocker.setPosition(0);
+                            shootPrep = true;
                         }
                         else{
                             ls.setPower(0);
                             rs.setPower(0);
                             //blocker.setPosition(0);
                         }
+
+                        if (gamepad1.right_trigger > 0.2 && shootReady){
+                            shootPow = velToPow(shootVel);
+                            ls.setPower(shootPow);
+                            rs.setPower(shootPow);
+                        }
+                        else
+                            shootReady = false;
 
                         break;
                 }
@@ -244,31 +262,39 @@ public class StraferMain extends LinearOpMode{
         double halfDist = dist / 2;
 
         // Now the while loop starts, which will constantly adjust the speed and the angle until the right path is calculated
-        while (shootPosCalc(halfDist, speed, angle) < MAX_HEIGHT - 1 && shootPosCalc(halfDist, speed, angle) > MAX_HEIGHT + 1 &&
-                shootPosCalc(dist, speed, angle) < -1 && shootPosCalc(dist, speed, angle) > 1){
-            if (shootPosCalc(dist, speed, angle) < -1){
-                speed += 0.5;
+        while (shootPosCalc(halfDist, speed, angle) < MAX_HEIGHT - 0.3 && shootPosCalc(halfDist, speed, angle) > MAX_HEIGHT + 0.3 &&
+                shootPosCalc(dist, speed, angle) < -0.2 && shootPosCalc(dist, speed, angle) > 0.2){
+            if (shootPosCalc(dist, speed, angle) < -0.2){
+                speed += 0.2;
             }
-            else if (shootPosCalc(dist, speed, angle) > 1){
-                speed -= 0.5;
+            else if (shootPosCalc(dist, speed, angle) > 0.2){
+                speed -= 0.2;
             }
 
-            if (shootPosCalc(halfDist, speed, angle) < MAX_HEIGHT - 1){
-                angle += 0.2;
+            if (shootPosCalc(halfDist, speed, angle) < MAX_HEIGHT - 0.3){
+                angle += 0.4;
             }
-            else if (shootPosCalc(halfDist, speed, angle) > MAX_HEIGHT + 1) {
-                angle -= 0.2;
+            else if (shootPosCalc(halfDist, speed, angle) > MAX_HEIGHT + 0.3) {
+                angle -= 0.4;
             }
         }
 
         // The global shooter velocity is now set to the speed calulated in this method, as well as the global angle set to the calulated angle
         shootVel = speed;
         shootAngle = angle;
+        shootPrep = false;
+        shootReady = true;
     }
 
     // This is the function used to determine the heights for the adjustments done in the setShootPos method
     private double shootPosCalc(double tempDist, double speed, double angle){
         double calc = tempDist * Math.tan(angle) - 9.8 / (2 * Math.pow(speed, 2) * Math.pow(Math.cos(angle), 2)) * Math.pow(tempDist, 2);
         return calc;
+    }
+
+    // This function translates velocity to motor power specifically for 6000 RPM motors combined with 72 mm Gecko Wheels
+    private double velToPow(double vel){
+        double newVel = vel / (7.2 * Math.PI);
+        return newVel;
     }
 }
