@@ -16,6 +16,13 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
+
 @Autonomous(name = "RedAutoReg", group = "autonomous")
 public class RedAutoReg extends OpMode{
 
@@ -24,11 +31,19 @@ public class RedAutoReg extends OpMode{
     private Follower fol;
     private Timer pathTimer, actionTimer, opmodeTimer; // Game timer
     private int pathState; // Current path #
+    private int chainNum;
 
     // CAMERA VARS
 
     private Limelight3A cam;
-    private int obNum = 21; // Obelisk #
+    private VisionPortal visPort;
+    private AprilTagProcessor apTag;
+    private AprilTagDetection foundTag;
+    private boolean tagFound;
+
+    private final int GPP_ID = 21;
+    private final int PGP_ID = 22;
+    private final int PPG_ID = 23;
 
     // POSITIONS
 
@@ -93,9 +108,25 @@ public class RedAutoReg extends OpMode{
         intakeBelt = hardwareMap.get(DcMotor.class, "intakeBelt");
         elbow = hardwareMap.get(DcMotor.class, "elbow");
 
+        // PATH INIT
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
+
+        setPathState(0);
+
+        // CAMERA INIT
+
+        apTag = new AprilTagProcessor.Builder().build();
+        apTag.setDecimation(2); // Trades some detection range for detection rate
+
+        visPort = new VisionPortal.Builder()
+                .setCamera(BuiltinCameraDirection.BACK)
+                .addProcessor(apTag)
+                .build();
+
+        // PID INIT
 
         coef = new PIDFCoefficients(p, i, d, f);
         lsPID = new PIDFController(coef);
@@ -139,32 +170,56 @@ public class RedAutoReg extends OpMode{
         elLastErr = elErr;
     }
 
-    public void buildPaths(){
-        if (obNum == 21){
+    public void buildPaths(int obNum){
+        setChainNum(obNum);
+        if (obNum == GPP_ID){
 
         }
-        else if (obNum == 22){
+        else if (obNum == PGP_ID){
 
         }
-        else{
+        else if (obNum == PPG_ID){
 
         }
     }
 
     public void autonomousPathUpdate(){
-        switch (pathState){
-            case 0:
-                break;
+        if (!tagFound){
+            List<AprilTagDetection> detections = apTag.getDetections();
 
-            case 1:
-                break;
-
-            case 2:
-                if (!fol.isBusy()){
-                    setPathState(-1);
+            for (AprilTagDetection tag : detections){
+                if (tag.metadata != null && (tag.id == GPP_ID || tag.id == PGP_ID || tag.id == PPG_ID)){
+                    buildPaths(tag.id);
+                    foundTag = tag;
+                    break;
                 }
-                break;
+            }
         }
+        else if (chainNum == 21 && tagFound) {
+            switch (pathState) {
+                case 0:
+                    break;
+
+                case 1:
+                    break;
+
+                case 2:
+                    if (!fol.isBusy()) {
+                        setPathState(-1);
+                    }
+                    break;
+            }
+        }
+        else if (chainNum == 22){
+
+        }
+        else if (chainNum == 23){
+
+        }
+    }
+
+    private void setChainNum(int num){
+        chainNum = num;
     }
 
     private void setPathState(int num){

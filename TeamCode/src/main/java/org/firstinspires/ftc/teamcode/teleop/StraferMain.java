@@ -9,6 +9,8 @@ import com.pedropathing.pathgen.PathChain;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.pedropathing.util.Timer;*/
+import android.graphics.Camera;
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -21,6 +23,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.IMU;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp(name = "StraferMain")
 public class StraferMain extends LinearOpMode{
@@ -42,6 +49,9 @@ public class StraferMain extends LinearOpMode{
     //private Limelight3A cam;
     //private LLResult camPic;
 
+    private OpenCvCamera cam;
+    private Mat camFrame;
+
     // SPEED AND POSITIONS
 
     private double mainSpeed = 0.5;
@@ -51,6 +61,7 @@ public class StraferMain extends LinearOpMode{
     private double fastMult = 1.8;
 
     private double beltSpeed = 0.3;
+    private double elbowSpeed = 0.6;
 
     private double blockPos = 0;
     private double openPos = 1;
@@ -63,6 +74,8 @@ public class StraferMain extends LinearOpMode{
 
     private double shootVel;
     private double shootAngle;
+    private double elbowFeed = 0.1;
+    private double elbowTarget;
     private double shootPow;
     private boolean shootPrep;
     private boolean shootReady;
@@ -111,6 +124,10 @@ public class StraferMain extends LinearOpMode{
         belt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         belt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         belt.setPower(beltSpeed);
+
+        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elbow.setPower(elbowSpeed);
 
         speed = mainSpeed;
         shootReady = false;
@@ -175,11 +192,26 @@ public class StraferMain extends LinearOpMode{
 
                         if (gamepad2.a && shootReady){
                             shootPow = velToPow(shootVel);
+                            elbowTarget = shootAngle;
+
+
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
                         }
                         else
                             shootReady = false;
+
+                        if (gamepad2.b){
+                            elbow.setPower(0.2);
+                        }
+                        else if (gamepad2.x){
+                            elbow.setPower(-0.2);
+                        }
+                        else{
+                            elbow.setPower(0);
+                        }
+
+                        //elbow.setPower(Math.cos(elbowTarget) * elbowFeed);
 
                         break;
 
