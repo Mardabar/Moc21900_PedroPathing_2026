@@ -68,13 +68,12 @@ public class StraferMain extends LinearOpMode{
 
     // SHOOTING CONSTANTS
 
-    private final double VEL_CONST = 0.025;
+    private final double OVERSHOOT_MULT = 1.2;
     private final double ANGLE_CONST = 0.5;
     private final double MAX_HEIGHT = 110;
 
     private double shootVel;
     private double shootAngle;
-    private double elbowFeed = 0.1;
     private double elbowTarget;
     private double shootPow;
     private boolean shootPrep;
@@ -116,14 +115,10 @@ public class StraferMain extends LinearOpMode{
         rb.setDirection(DcMotor.Direction.FORWARD);
         lf.setDirection(DcMotor.Direction.REVERSE);
         rf.setDirection(DcMotor.Direction.FORWARD);
-        ls.setDirection(DcMotor.Direction.REVERSE);
-        rs.setDirection(DcMotor.Direction.FORWARD);
+        ls.setDirection(DcMotor.Direction.FORWARD);
+        rs.setDirection(DcMotor.Direction.REVERSE);
         belt.setDirection(DcMotor.Direction.FORWARD);
         elbow.setDirection(DcMotor.Direction.FORWARD);
-
-        belt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        belt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        belt.setPower(beltSpeed);
 
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -133,7 +128,6 @@ public class StraferMain extends LinearOpMode{
         shootReady = false;
         shootPrep = false;
         //blocker.scaleRange(blockPos, openPos);
-        //cam.pipelineSwitch(0);
 
         // The robot waits for the opmode to become active
         waitForStart();
@@ -142,14 +136,26 @@ public class StraferMain extends LinearOpMode{
                 // This is where the mode is selected and only runs when there is no mode selected
                 if (gamepad1.dpad_down){
                     robotMode = 0;
+                    elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    elbow.setPower(elbowSpeed);
                     modeSelected = true;
                 }
                 else if (gamepad1.dpad_right){
                     robotMode = 1;
+                    elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    elbow.setPower(elbowSpeed);
                     modeSelected = true;
                 }
                 else if (gamepad1.dpad_up){
                     robotMode = 2;
+                    elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    elbow.setPower(elbowSpeed);
+                    modeSelected = true;
+                }
+                else if (gamepad1.right_stick_button){
+                    robotMode = 3;
+                    elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    elbow.setPower(0);
                     modeSelected = true;
                 }
             } else if (modeSelected) {
@@ -159,11 +165,11 @@ public class StraferMain extends LinearOpMode{
 
                         // MAIN DRIVER CONTROLS
 
-                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
-                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
                         if (gamepad1.left_bumper)
                             speed = mainSpeed * slowMult;
@@ -175,11 +181,11 @@ public class StraferMain extends LinearOpMode{
                         // ACCESSORY DRIVER CONTROLS
 
                         if (gamepad2.right_bumper){
-                            moveBelt(1);
+                            belt.setPower(beltSpeed);
                             //blocker.setPosition(1);
                         }
                         else if (gamepad2.left_bumper){
-                            moveBelt(-1);
+                            belt.setPower(-beltSpeed);
                             //blocker.setPosition(1);
                         }
                         else if (gamepad2.a && !shootPrep && !shootReady){
@@ -187,31 +193,20 @@ public class StraferMain extends LinearOpMode{
                             //blocker.setPosition(0);
                             shootPrep = true;
                         }
-                        else
+                        else{
+                            belt.setPower(0);
                             //blocker.setPosition(0);
+                        }
 
                         if (gamepad2.a && shootReady){
                             shootPow = velToPow(shootVel);
                             elbowTarget = shootAngle;
-
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
                         }
                         else
                             shootReady = false;
-
-                        if (gamepad2.b){
-                            elbow.setPower(0.2);
-                        }
-                        else if (gamepad2.x){
-                            elbow.setPower(-0.2);
-                        }
-                        else{
-                            elbow.setPower(0);
-                        }
-
-                        //elbow.setPower(Math.cos(elbowTarget) * elbowFeed);
 
                         break;
 
@@ -220,7 +215,7 @@ public class StraferMain extends LinearOpMode{
 
                         break;
 
-                    case 2: // Free mode, the robot has zero presets and the drivers have full control
+                    case 2: // Single player mode, only one controller is required
 
                         // MAIN DRIVER CONTROLS
 
@@ -238,11 +233,11 @@ public class StraferMain extends LinearOpMode{
                             speed = mainSpeed;
 
                         if (gamepad1.left_trigger > 0.2){
-                            moveBelt(1);
+                            belt.setPower(beltSpeed);
                             //blocker.setPosition(1);
                         }
                         else if (gamepad1.a){
-                            moveBelt(-1);
+                            belt.setPower(-beltSpeed);
                             //blocker.setPosition(1);
                         }
                         else if (gamepad1.right_trigger > 0.2 && !shootPrep && !shootReady){
@@ -253,18 +248,52 @@ public class StraferMain extends LinearOpMode{
                         else{
                             ls.setPower(0);
                             rs.setPower(0);
+                            belt.setPower(0);
                             //blocker.setPosition(0);
                         }
 
-                        if (gamepad1.right_trigger > 0.2 && shootReady){
-                            shootPow = velToPow(shootVel);
-                            ls.setPower(shootPow);
-                            rs.setPower(shootPow);
+                        break;
+
+                    case 3: // Free mode, the robot has zero presets and the drivers have full control
+                        lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+
+                        lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+
+                        if (gamepad1.left_bumper)
+                            speed = mainSpeed * slowMult;
+                        else if (gamepad1.right_bumper)
+                            speed = mainSpeed * fastMult;
+                        else
+                            speed = mainSpeed;
+
+                        if (gamepad1.b){
+                            belt.setPower(beltSpeed);
+                            //blocker.setPosition(1);
+                        }
+                        else if (gamepad1.x){
+                            belt.setPower(-beltSpeed);
+                            //blocker.setPosition(1);
                         }
                         else
-                            shootReady = false;
+                            belt.setPower(0);
 
-                        break;
+                        if (gamepad1.a){
+                            ls.setPower(0.6);
+                            rs.setPower(0.6);
+                        }
+                        else{
+                            ls.setPower(0);
+                            rs.setPower(0);
+                        }
+
+                        if (gamepad1.left_trigger > 0.2)
+                            elbow.setPower(0.5);
+                        else if (gamepad1.right_trigger > 0.2)
+                            elbow.setPower(-0.5);
+                        else
+                            elbow.setPower(0);
                 }
 
                 if (gamepad1.dpad_left) {
@@ -276,13 +305,6 @@ public class StraferMain extends LinearOpMode{
     }
 
     // ACCESSORY METHODS
-
-    private void moveBelt(int direction){
-        belt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        if (belt.getPower() < beltSpeed)
-            belt.setTargetPosition(belt.getCurrentPosition() + (1 * direction));
-        belt.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
 
     // This method sets the speed of the shooter motors and the angle of the shooting position
     private void setShootPos(double ix, double iy, double fx, double fy){
