@@ -18,6 +18,11 @@ apply from: '../build.dependencies.gradle'
 android {
     namespace = 'org.firstinspires.ftc.teamcode'
 
+    compileSdk 35
+    defaultConfig {
+        minSdk 24
+    }
+
     packagingOptions {
         jniLibs.useLegacyPackaging true
     }
@@ -31,7 +36,9 @@ dependencies {
     implementation 'org.openftc:easyopencv:1.7.3'
 
     implementation 'com.acmerobotics.roadrunner:core:1.0.0'
+    implementation "com.bylazar:fullpanels:1.0.7"
     //implementation 'com.rowanmcalpin.nextftc:core:0.5.6-beta'
 
     implementation 'dev.nextftc:ftc:1.0.0'
 }
+
