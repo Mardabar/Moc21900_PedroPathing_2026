@@ -20,7 +20,7 @@ dependencies {
     implementation 'com.pedropathing:telemetry:0.0.6'
     implementation 'com.rowanmcalpin.nextftc:core:0.5.6-beta'
     implementation 'com.rowanmcalpin.nextftc:ftc:0.5.6-beta'
-    implementation 'com.bylazar:fullpanels:1.0.2'
+    implementation 'com.bylazar:fullpanels:1.0.3'
     implementation 'com.acmerobotics.dashboard:dashboard:0.4.16'
 
     implementation 'androidx.appcompat:appcompat:1.7.1'

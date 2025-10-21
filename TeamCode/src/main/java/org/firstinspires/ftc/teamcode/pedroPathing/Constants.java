@@ -16,16 +16,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .forwardZeroPowerAcceleration(-38.64)
-            .lateralZeroPowerAcceleration(-40.35)
-            .mass(4.808079);
+            .forwardZeroPowerAcceleration(-39.25)
+            .lateralZeroPowerAcceleration(-79.51)
+            .mass(7.348196);
 
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             // Check issue with either wheels or wiring of motors because drive code is not working atm
             .maxPower(1)
-            .xVelocity(63.224)
-            .yVelocity(56.67)
+            .xVelocity(63.228)
+            .yVelocity(53.399)
 
             .rightFrontMotorName("rf")
             .rightRearMotorName("rb")
