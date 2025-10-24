@@ -10,11 +10,18 @@ import com.pedropathing.pathgen.Point;
 import com.pedropathing.util.Constants;
 import com.pedropathing.util.Timer;*/
 import android.graphics.Camera;
+import android.graphics.Canvas;
 
+import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -22,7 +29,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.IMU;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
@@ -42,15 +56,19 @@ public class StraferMain extends LinearOpMode{
     private DcMotor belt;
     private DcMotor elbow;
 
-    //private Servo blocker;
+    private Servo blocker;
 
     // CAMERA
 
     //private Limelight3A cam;
     //private LLResult camPic;
 
-    private OpenCvCamera cam;
-    private Mat camFrame;
+    //private OpenCvCamera cam;
+    //private Mat camFrame;
+
+    private VisionPortal visPort;
+    private AprilTagProcessor apTag;
+    private AprilTagDetection foundTag;
 
     // SPEED AND POSITIONS
 
@@ -63,10 +81,10 @@ public class StraferMain extends LinearOpMode{
     private double beltSpeed = 0.3;
     private double elbowSpeed = 0.6;
 
-    private double blockPos = 0;
-    private double openPos = 1;
+    private double blockPos = 0.2;
+    private double openPos = 0.4;
 
-    // SHOOTING CONSTANTS
+    // SHOOTING VARS
 
     private final double OVERSHOOT_MULT = 1.2;
     private final double ANGLE_CONST = 2.08833333;
@@ -82,6 +100,8 @@ public class StraferMain extends LinearOpMode{
 
     // OTHER VARS
 
+    private ElapsedTime blockTimer;
+    private int color; // Red is 0 and blue is 1
     private int robotMode = 0;
     private boolean modeSelected = false;
 
@@ -96,9 +116,6 @@ public class StraferMain extends LinearOpMode{
         rs = hardwareMap.get(DcMotor.class, "rs");
         belt = hardwareMap.get(DcMotor.class, "belt");
         elbow = hardwareMap.get(DcMotor.class, "elbow");
-
-        // The camera also needs a hardware map
-        //cam = hardwareMap.get(Limelight3A.class, "cam");
 
         // Zero power behaviors are set for the motors
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -124,15 +141,32 @@ public class StraferMain extends LinearOpMode{
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setPower(elbowSpeed);
 
+        blocker = hardwareMap.get(Servo.class, "blocker");
+
+        // Camera
+
+        apTag = new AprilTagProcessor.Builder().build();
+        apTag.setDecimation(2);
+
+        visPort = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
+                .addProcessor(apTag)
+                .build();
+
         speed = mainSpeed;
         shootReady = false;
         shootPrep = false;
-        //blocker.scaleRange(blockPos, openPos);
+        blockTimer = new ElapsedTime();
+        blocker.scaleRange(blockPos, openPos);
 
         // The robot waits for the opmode to become active
         waitForStart();
         while (opModeIsActive()){
             if (!modeSelected){
+                if (gamepad1.left_bumper)
+                    color = 1;
+                else
+                    color = 0;
                 // This is where the mode is selected and only runs when there is no mode selected
                 if (gamepad1.dpad_down){
                     robotMode = 0;
@@ -183,40 +217,50 @@ public class StraferMain extends LinearOpMode{
 
                         // ACCESSORY DRIVER CONTROLS
 
-                        if (gamepad2.right_bumper){
+                        if (gamepad2.right_bumper)
                             belt.setPower(beltSpeed);
-                            //blocker.setPosition(1);
-                        }
-                        else if (gamepad2.left_bumper){
+                        else if (gamepad2.left_bumper)
                             belt.setPower(-beltSpeed);
-                            //blocker.setPosition(1);
-                        }
                         else if (gamepad2.a && !shootPrep && !shootReady){
-                            setShootPos(30, 30, 135, 135);
-                            //blocker.setPosition(0);
+                            List<AprilTagDetection> detections = apTag.getDetections();
+                            for (AprilTagDetection tag : detections){
+                                if (Objects.equals(tag.metadata.name, "RedTarget"))
+                                    foundTag = tag;
+                                telemetry.addData("Tag Name", tag.metadata.name);
+                                telemetry.addData("Robot Coordinates", "(" + tag.ftcPose.x + ", " + tag.ftcPose.y + ")");
+                                telemetry.update();
+                            }
+
+                            if (color == 0)
+                                setShootPos(foundTag.ftcPose.x, foundTag.ftcPose.y, 135, 135);
+                            else if (color == 1)
+                                setShootPos(foundTag.ftcPose.x, foundTag.ftcPose.y, 9, 135);
+
+                            blockTimer.reset();
                             shootPrep = true;
                         }
-                        else{
+                        else
                             belt.setPower(0);
-                            //blocker.setPosition(0);
-                        }
 
                         if (gamepad2.a && shootReady){
                             shootPow = velToPow(shootVel);
-                            //setElbowTarget(shootAngle);
+                            setElbowTarget(shootAngle);
                             telemetry.addData("Launch Motor Power", velToPow(shootVel));
                             telemetry.addData("Elbow Angle", shootAngle);
                             telemetry.update();
+
+                            if (blockTimer.milliseconds() >= 3)
+                                blocker.setPosition(openPos);
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
                         }
                         else if (shootReady){
+                            blocker.setPosition(blockPos);
                             ls.setPower(0);
                             rs.setPower(0);
                             shootReady = false;
                         }
-
 
                         break;
 
