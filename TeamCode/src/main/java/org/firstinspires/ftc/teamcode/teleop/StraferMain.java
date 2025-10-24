@@ -16,6 +16,7 @@ import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.ArrayList;
@@ -30,9 +31,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoController;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -57,6 +61,8 @@ public class StraferMain extends LinearOpMode{
     private DcMotor elbow;
 
     private Servo blocker;
+    private CRServo br;
+    private CRServo bl;
 
     // CAMERA
 
@@ -142,10 +148,15 @@ public class StraferMain extends LinearOpMode{
         elbow.setPower(elbowSpeed);
 
         blocker = hardwareMap.get(Servo.class, "blocker");
+        br = hardwareMap.get(CRServo.class, "br");
+        bl = hardwareMap.get(CRServo.class, "bl");
 
         // Camera
 
-        apTag = new AprilTagProcessor.Builder().build();
+        apTag = new AprilTagProcessor.Builder()
+                .setCameraPose(new Position(DistanceUnit.INCH, 0, 0, 0, 0),
+                        new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0))
+                .build();
         apTag.setDecimation(2);
 
         visPort = new VisionPortal.Builder()
@@ -217,30 +228,40 @@ public class StraferMain extends LinearOpMode{
 
                         // ACCESSORY DRIVER CONTROLS
 
-                        if (gamepad2.right_bumper)
+                        if (gamepad2.right_bumper) {
                             belt.setPower(beltSpeed);
-                        else if (gamepad2.left_bumper)
+                            br.setPower(-beltSpeed);
+                            bl.setPower(beltSpeed);
+                        }
+                        else if (gamepad2.left_bumper) {
                             belt.setPower(-beltSpeed);
+                            br.setPower(beltSpeed);
+                            bl.setPower(-beltSpeed);
+                        }
                         else if (gamepad2.a && !shootPrep && !shootReady){
                             List<AprilTagDetection> detections = apTag.getDetections();
                             for (AprilTagDetection tag : detections){
                                 if (Objects.equals(tag.metadata.name, "RedTarget"))
                                     foundTag = tag;
                                 telemetry.addData("Tag Name", tag.metadata.name);
-                                telemetry.addData("Robot Coordinates", "(" + tag.ftcPose.x + ", " + tag.ftcPose.y + ")");
+                                telemetry.addData("Robot Coordinates",
+                                        "(" + tag.robotPose.getPosition().x + ", " + tag.robotPose.getPosition().y + ")");
                                 telemetry.update();
                             }
 
                             if (color == 0)
-                                setShootPos(foundTag.ftcPose.x, foundTag.ftcPose.y, 135, 135);
+                                setShootPos(foundTag.robotPose.getPosition().x, foundTag.robotPose.getPosition().y, 135, 135);
                             else if (color == 1)
-                                setShootPos(foundTag.ftcPose.x, foundTag.ftcPose.y, 9, 135);
+                                setShootPos(foundTag.robotPose.getPosition().x, foundTag.robotPose.getPosition().y, 9, 135);
 
                             blockTimer.reset();
                             shootPrep = true;
                         }
-                        else
+                        else {
                             belt.setPower(0);
+                            br.setPower(0);
+                            bl.setPower(0);
+                        }
 
                         if (gamepad2.a && shootReady){
                             shootPow = velToPow(shootVel);
@@ -370,51 +391,37 @@ public class StraferMain extends LinearOpMode{
 
     // This method sets the speed of the shooter motors and the angle of the shooting position
     private void setShootPos(double ix, double iy, double fx, double fy){
-        // Temporary vars are created to set the actual vars at the end of the method
         /* dist is the total distance the ball will travel until it hits the ground
            It's divided by 40 to turn the field units into meters
            Then, it's multiplied by 1.3 because the ball will hit the goal first, so using the
            equation, it'll be about 1 meter high (the height of the goal) when it hit our requested distance
          */
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
-        double angle = 0;
-        double speed = 0;
 
-        // We loop the calculations until the equation equals zero
-        while (!(shootPosCalc(dist, speed, angle) > -0.2 && shootPosCalc(dist, speed, angle) < 0.2)){
-            angle += 0.1;
-            speed = angleToVel(angle);
-        }
-
-        // The global shooter velocity is now set to the speed calulated in this method, as well as the global angle set to the calulated angle
-        shootVel = speed * OVERSHOOT_MULT;
-        shootAngle = angle * OVERSHOOT_MULT;
+        // The angle and velocity are both calculated using the distance we found
+        shootAngle = distToAngle(dist) * OVERSHOOT_MULT;
+        shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_MULT;
         shootPrep = false;
         shootReady = true;
     }
 
-    // This is the function used to determine the velocity and angle of the launcher
-    private double shootPosCalc(double tempDist, double speed, double angle){
-        double calc = tempDist * Math.tan(angle) - (9.8 / (2 * Math.pow(speed, 2) * Math.pow(Math.cos(angle), 2))) * Math.pow(tempDist, 2);
-        return calc;
+    private double distToAngle(double dist){
+        return Math.atan(54.88 / (9.8 * dist));
     }
 
     // This function translates angle to velocity using the already set maximum height
     private double angleToVel(double angle){
-        double newVel = Math.sqrt((MAX_HEIGHT * 19.6) / Math.pow(Math.sin(angle), 2));
-        return newVel;
+        return Math.sqrt((MAX_HEIGHT * 19.6) / Math.pow(Math.sin(angle), 2));
     }
 
     // This function translates velocity to motor power specifically for 6000 RPM motors combined with 72 mm Gecko Wheels
     private double velToPow(double vel){
-        double newVel = vel / (7.2 * Math.PI);
-        return newVel;
+        return vel / (7.2 * Math.PI);
     }
 
     // This function translates an angle in degrees to an encoder value on 223 RPM motors
     private double angleToEncoder(double angle){
-        double newAngle = angle * ANGLE_CONST;
-        return newAngle;
+        return angle * ANGLE_CONST;
     }
 
     private void setElbowTarget(double angle){
