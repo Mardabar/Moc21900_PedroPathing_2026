@@ -191,6 +191,7 @@ public class RedAutoReg extends OpMode{
                 if (tag.metadata != null && (tag.id == GPP_ID || tag.id == PGP_ID || tag.id == PPG_ID)){
                     buildPaths(tag.id);
                     foundTag = tag;
+                    tagFound = true;
                     break;
                 }
             }
