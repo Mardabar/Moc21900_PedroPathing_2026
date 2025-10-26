@@ -1,26 +1,37 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
+
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
+
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.teamcode.RobotPoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 
 @Configurable
 @TeleOp(name = "StraferOpV2")
@@ -43,12 +54,13 @@ public class StraferOpV2 extends LinearOpMode {
     private double speedChange = 1;
     private double speed;
 
+
     // This is a temporary variable
     // Will be used to update and change in real time until I find proper values for each individual shootMode
     public static double newLaunchPower;
 
-    private double xPos = 0;
-    private double yPos = 0;
+    private Follower follower;
+
 
     // I think im cooking here but it probably wont work :(
     private double getBatteryVoltage() {
@@ -68,7 +80,7 @@ public class StraferOpV2 extends LinearOpMode {
 
 
     @Override
-    public void runOpMode(){
+    public void runOpMode() throws InterruptedException {
 
 
         // Motors are set to each of its variables
@@ -105,11 +117,28 @@ public class StraferOpV2 extends LinearOpMode {
         rs.setPower(launchPower);
         ls.setPower(launchPower);
 
+        // Variables needed for pedro and updating position on the field
+        follower = Constants.createFollower(hardwareMap);
+
+        // Starting pos after teleop
+        follower.setStartingPose(new Pose(0, 0, 0));
 
         // Robot waits for the opmode to be activated
+        if (isStopRequested()) return;
         waitForStart();
 
+
         while (opModeIsActive()){
+
+            follower = Constants.createFollower(hardwareMap);
+
+            // If the autonomous ran it will use the end position other wise itll be set to (0, 0, 0).
+            follower.setStartingPose(RobotPoseStorage.currentPose);
+
+
+            // Updates and prints location and values of robot to station
+            updatePos();
+            updateValues();
 
             lb.setPower(gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
             rb.setPower(gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
@@ -159,6 +188,19 @@ public class StraferOpV2 extends LinearOpMode {
 
     }
 
+    public void updatePos(){
+        follower.update();
+
+        // Get the position of the robot
+        Pose currentPose = follower.getPose();
+
+        double currentX = currentPose.getX();
+        double currentY = currentPose.getY();
+
+        telemetry.addData("X Position", "%.2f", currentX);
+        telemetry.addData("Y Position", "%.2f", currentY);
+    }
+
     // Updates the motor shooting power and makes code easier to read up top
     public void updateLaunchers(){
         rs.setPower(launchPower);
@@ -173,7 +215,7 @@ public class StraferOpV2 extends LinearOpMode {
     // Heres a bunch of useful telemetry values that will be printed to the driver station
     public void updateValues(){
         // Erm not 100% sure if the telemetry system will like what I do here so if not will be an easy change
-        telemetry.addData("X Pos: ", xPos + "\nY Pos: " + yPos);
+        //telemetry.addData("X Pos: ", xPos + "\nY Pos: " + yPos);
 
         // Gets the battery voltage and prints to driver station
         double currentVoltage = getBatteryVoltage();
