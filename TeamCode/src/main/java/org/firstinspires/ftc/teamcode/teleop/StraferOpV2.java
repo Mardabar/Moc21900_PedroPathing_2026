@@ -54,12 +54,12 @@ public class StraferOpV2 extends LinearOpMode {
     private double speed;
 
 
-    // This is a temporary variable
-    // Will be used to update and change in real time until I find proper values for each individual shootMode
-    public static double newLaunchPower;
+    // Holds the power of the motor so it doesn't get messed up with the if statement here
     private double powerSetpoint = 0.0;
 
-    // Configurable Launcher Power Variables
+
+    // These are temporary variable
+    // Will be used to update and change in real time until I find proper values for each individual shootMode
     public static double middlePower = 0.50;  // Default power for Middle D-Pad Up
     public static double backPower = 0.75;    // Default power for Back D-Pad Down
     public static double topPower = 0.55;     // Default power for Top D-Pad Right
@@ -67,8 +67,6 @@ public class StraferOpV2 extends LinearOpMode {
 
     private Follower follower;
 
-    // Get the current battery voltage
-    double currentVoltage = getBatteryVoltage();
 
 
     @Override
@@ -107,11 +105,11 @@ public class StraferOpV2 extends LinearOpMode {
         ls.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
-        // Variables needed for pedro and updating position on the field
+        /* Variables needed for pedro and updating position on the field
         follower = Constants.createFollower(hardwareMap);
 
         // Starting pos after teleop
-        follower.setStartingPose(new Pose(0, 0, 0));
+        follower.setStartingPose(new Pose(0, 0, 0)); */
 
 
 
@@ -123,16 +121,12 @@ public class StraferOpV2 extends LinearOpMode {
 
         while (opModeIsActive()){
 
-            follower = Constants.createFollower(hardwareMap);
+            /* follower = Constants.createFollower(hardwareMap);
 
             // If the autonomous ran it will use the end position other wise itll be set to (0, 0, 0).
-            follower.setStartingPose(RobotPoseStorage.currentPose);
+            follower.setStartingPose(RobotPoseStorage.currentPose); */
 
 
-
-            // Updates and prints location and values of robot to station
-            updatePos();
-            updateValues();
 
             lb.setPower(gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
             rb.setPower(gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
@@ -159,18 +153,18 @@ public class StraferOpV2 extends LinearOpMode {
             // Power will need to be high here
             else if (gamepad2.dpad_down){
                 shootMode = "Back";
-                launchPower = backPower /*.75*/;
+                powerSetpoint = backPower /*.75*/;
             }
             // When robot is at the tip of the shooting triangle box thingy
             else if (gamepad2.dpad_right){
                 shootMode = "Top";
-                launchPower = topPower /*.55*/;
+                powerSetpoint = topPower /*.55*/;
             }
             // When robot is at the bottom of the lebron box thingy
             // Relatively low power here
             else if (gamepad2.dpad_left){
                 shootMode = "Box";
-                launchPower = boxPower /*.3*/;
+                powerSetpoint = boxPower /*.3*/;
             }
 
 
@@ -221,11 +215,12 @@ public class StraferOpV2 extends LinearOpMode {
         ls.setPower(launchPower);
     }
 
-    // Heres a bunch of useful telemetry values that will be printed to the driver station
-    public void updateValues(){
-        // Erm not 100% sure if the telemetry system will like what I do here so if not will be an easy change
-        /** If this doesnt work prolly have to slap this inside the opmode is active loop */
 
+    // Heres a bunch of useful telemetry values that will be printed to the driver station
+
+    /** If this doesnt work prolly have to slap this inside the opmode is active loop */
+    /* public void updateValues(){
+        // Erm not 100% sure if the telemetry system will like what I do here so if not will be an easy change
         // Gets the battery voltage and prints to driver station
         double currentVoltage = getBatteryVoltage();
         telemetry.addData("Current Voltage", "%.2f V", currentVoltage);
@@ -234,12 +229,12 @@ public class StraferOpV2 extends LinearOpMode {
         }
 
         telemetry.update();
-    }
+    } */
 
 
     // I think im cooking here but it probably wont work :(
     /** If this doesnt work prolly have to slap this inside the opmode is active loop */
-    private double getBatteryVoltage() {
+    /* private double getBatteryVoltage() {
         double result = Double.POSITIVE_INFINITY;
         // hardwareMap.voltageSensor is a collection of all voltage sensors like control hub, expansion hub, ect
         for (VoltageSensor sensor : hardwareMap.voltageSensor) {
@@ -249,7 +244,7 @@ public class StraferOpV2 extends LinearOpMode {
             }
         }
         return result;
-    }
+    } */
 
 
 }
