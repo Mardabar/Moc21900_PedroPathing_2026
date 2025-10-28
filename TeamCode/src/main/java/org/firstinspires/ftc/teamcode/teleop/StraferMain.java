@@ -179,6 +179,7 @@ public class StraferMain extends LinearOpMode{
         waitForStart();
         while (opModeIsActive()){
             if (!modeSelected){
+                // The color is selected here
                 if (gamepad1.left_bumper)
                     color = 1;
                 else
@@ -218,25 +219,32 @@ public class StraferMain extends LinearOpMode{
 
                         // MAIN DRIVER CONTROLS
 
-                        if (Math.abs(gamepad1.left_stick_y) < snapPos) {
+                        // This block allows the movement to snap in one direction if the driver seems to want to go in just one direction
+                        if (Math.abs(gamepad1.left_stick_y) < snapPos && Math.abs(gamepad1.left_stick_x) > snapPos) {
                             lStickPosX = gamepad1.left_stick_x;
                             lStickPosY = 0;
                         }
-                        else if (Math.abs(gamepad1.left_stick_x) < snapPos) {
+                        else if (Math.abs(gamepad1.left_stick_y) > snapPos && Math.abs(gamepad1.left_stick_x) < snapPos) {
                             lStickPosY = gamepad1.left_stick_y;
                             lStickPosX = 0;
                         }
-                        else{
+                        else if (Math.abs(gamepad1.left_stick_y) < snapPos * 3 && Math.abs(gamepad1.left_stick_x) < snapPos * 3) {
+                            lStickPosY = 0;
+                            lStickPosX = 0;
+                        }
+                        else {
                             lStickPosY = gamepad1.left_stick_y;
                             lStickPosX = gamepad1.left_stick_x;
                         }
 
+                        // The main strafer movement of the robot, changed for the first time in years
                         lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * lStickPosX + speed * lStickPosY);
                         rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * lStickPosX + speed * lStickPosY);
 
                         lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * lStickPosX + speed * lStickPosY);
                         rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * lStickPosX + speed * lStickPosY);
 
+                        // Changes the current speed of the robot
                         if (gamepad1.left_bumper)
                             speed = mainSpeed * slowMult;
                         else if (gamepad1.right_bumper)
@@ -288,13 +296,10 @@ public class StraferMain extends LinearOpMode{
 
                         if (gamepad2.a && shootReady){
                             shootPow = velToPow(shootVel);
-                            //setElbowTarget(shootAngle);
-                            telemetry.addData("Launch Motor Power", velToPow(shootVel));
-                            telemetry.addData("Elbow Angle", shootAngle);
-                            telemetry.update();
+                            setElbowTarget(shootAngle);
 
-                            /*if (blockTimer.milliseconds() >= 3)
-                                blocker.setPosition(openPos);*/
+                            if (blockTimer.milliseconds() >= 3)
+                                blocker.setPosition(openPos);
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
@@ -303,6 +308,7 @@ public class StraferMain extends LinearOpMode{
                             blocker.setPosition(blockPos);
                             ls.setPower(0);
                             rs.setPower(0);
+                            shootPrep = false;
                             shootReady = false;
                         }
 
@@ -427,7 +433,9 @@ public class StraferMain extends LinearOpMode{
 
         telemetry.addData("Distance", dist);
         telemetry.addData("Angle", shootAngle);
+        telemetry.addData("Real Angle", distToAngle(dist));
         telemetry.addData("Velocity", shootVel);
+        telemetry.addData("Real Velocity", angleToVel(distToAngle(dist)));
         telemetry.update();
 
         shootPrep = false;
@@ -435,12 +443,12 @@ public class StraferMain extends LinearOpMode{
     }
 
     private double distToAngle(double dist){
-        return Math.atan(54.88 / (9.8 * dist));
+        return Math.toDegrees(Math.atan(54.88 / (9.8 * dist)));
     }
 
     // This function translates angle to velocity using the already set maximum height
     private double angleToVel(double angle){
-        return Math.sqrt((MAX_HEIGHT * 19.6) / Math.pow(Math.sin(angle), 2));
+        return Math.sqrt((MAX_HEIGHT * 19.6) / Math.pow(Math.sin(Math.toRadians(angle)), 2));
     }
 
     // This function translates velocity to motor power specifically for 6000 RPM motors combined with 72 mm Gecko Wheels
