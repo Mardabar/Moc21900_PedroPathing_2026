@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-/*import com.pedropathing.follower.Follower;
-import com.pedropathing.localization.Pose;
-import com.pedropathing.pathgen.BezierCurve;
-import com.pedropathing.pathgen.BezierLine;
-import com.pedropathing.pathgen.Path;
-import com.pedropathing.pathgen.PathChain;
-import com.pedropathing.pathgen.Point;
-import com.pedropathing.util.Constants;
-import com.pedropathing.util.Timer;*/
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
 import android.graphics.Camera;
 import android.graphics.Canvas;
 
@@ -22,15 +20,12 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.ServoController;
-import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -38,6 +33,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -75,6 +71,7 @@ public class StraferMain extends LinearOpMode{
     private VisionPortal visPort;
     private AprilTagProcessor apTag;
     private AprilTagDetection foundTag;
+    private Follower robotPos;
 
     // SPEED AND POSITIONS
 
@@ -84,7 +81,11 @@ public class StraferMain extends LinearOpMode{
     private double slowMult = 0.4;
     private double fastMult = 1.8;
 
-    private double beltSpeed = 0.3;
+    private double lStickPosX;
+    private double lStickPosY;
+    private double snapPos = 0.1;
+
+    private double beltSpeed = 1;
     private double elbowSpeed = 0.6;
 
     private double blockPos = 0.2;
@@ -92,7 +93,8 @@ public class StraferMain extends LinearOpMode{
 
     // SHOOTING VARS
 
-    private final double OVERSHOOT_MULT = 1.2;
+    private final double OVERSHOOT_VEL_MULT = 1.8;
+    private final double OVERSHOOT_ANG_MULT = 1.2;
     private final double ANGLE_CONST = 2.08833333;
     private final double MAX_HEIGHT = 1.4;
 
@@ -154,8 +156,8 @@ public class StraferMain extends LinearOpMode{
         // Camera
 
         apTag = new AprilTagProcessor.Builder()
-                .setCameraPose(new Position(DistanceUnit.INCH, 0, 0, 0, 0),
-                        new YawPitchRollAngles(AngleUnit.DEGREES, 0, 0, 0, 0))
+                .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
+                        new YawPitchRollAngles(AngleUnit.DEGREES, 0, 14, 0, 0))
                 .build();
         apTag.setDecimation(2);
 
@@ -163,6 +165,9 @@ public class StraferMain extends LinearOpMode{
                 .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
                 .addProcessor(apTag)
                 .build();
+
+        robotPos = Constants.createFollower(hardwareMap);
+        robotPos.setStartingPose(new Pose(0,0,0));
 
         speed = mainSpeed;
         shootReady = false;
@@ -213,11 +218,24 @@ public class StraferMain extends LinearOpMode{
 
                         // MAIN DRIVER CONTROLS
 
-                        lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        if (Math.abs(gamepad1.left_stick_y) < snapPos) {
+                            lStickPosX = gamepad1.left_stick_x;
+                            lStickPosY = 0;
+                        }
+                        else if (Math.abs(gamepad1.left_stick_x) < snapPos) {
+                            lStickPosY = gamepad1.left_stick_y;
+                            lStickPosX = 0;
+                        }
+                        else{
+                            lStickPosY = gamepad1.left_stick_y;
+                            lStickPosX = gamepad1.left_stick_x;
+                        }
 
-                        lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * lStickPosX + speed * lStickPosY);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * lStickPosX + speed * lStickPosY);
+
+                        lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * lStickPosX + speed * lStickPosY);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * lStickPosX + speed * lStickPosY);
 
                         if (gamepad1.left_bumper)
                             speed = mainSpeed * slowMult;
@@ -230,32 +248,37 @@ public class StraferMain extends LinearOpMode{
 
                         if (gamepad2.right_bumper) {
                             belt.setPower(beltSpeed);
-                            br.setPower(-beltSpeed);
-                            bl.setPower(beltSpeed);
-                        }
-                        else if (gamepad2.left_bumper) {
-                            belt.setPower(-beltSpeed);
                             br.setPower(beltSpeed);
                             bl.setPower(-beltSpeed);
                         }
+                        else if (gamepad2.left_bumper) {
+                            belt.setPower(-beltSpeed);
+                            br.setPower(-beltSpeed);
+                            bl.setPower(beltSpeed);
+                        }
                         else if (gamepad2.a && !shootPrep && !shootReady){
-                            List<AprilTagDetection> detections = apTag.getDetections();
+                            List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
+                            // Runs through each apriltag found and checks if it's a target
                             for (AprilTagDetection tag : detections){
-                                if (Objects.equals(tag.metadata.name, "RedTarget"))
+                                if (Objects.equals(tag.metadata.name, "RedTarget") || Objects.equals(tag.metadata.name, "BlueTarget"))
                                     foundTag = tag;
+                                // Adds telemetry to the console specifying the coords of the robot and name of the april tag
                                 telemetry.addData("Tag Name", tag.metadata.name);
                                 telemetry.addData("Robot Coordinates",
-                                        "(" + tag.robotPose.getPosition().x + ", " + tag.robotPose.getPosition().y + ")");
+                                        "(" + tag.ftcPose.x + ", " + tag.ftcPose.y + ")");
                                 telemetry.update();
                             }
 
-                            if (color == 0)
-                                setShootPos(foundTag.robotPose.getPosition().x, foundTag.robotPose.getPosition().y, 135, 135);
-                            else if (color == 1)
-                                setShootPos(foundTag.robotPose.getPosition().x, foundTag.robotPose.getPosition().y, 9, 135);
+                            // Checks if the correct april tag was found before the shooting position gets set
+                            if (foundTag == null) {
+                                if (color == 0)
+                                    setShootPos(60, 60, 135, 135);
+                                else if (color == 1)
+                                    setShootPos(foundTag.robotPose.getPosition().x, foundTag.robotPose.getPosition().y, 9, 135);
 
-                            blockTimer.reset();
-                            shootPrep = true;
+                                blockTimer.reset();
+                                shootPrep = true;
+                            }
                         }
                         else {
                             belt.setPower(0);
@@ -265,13 +288,13 @@ public class StraferMain extends LinearOpMode{
 
                         if (gamepad2.a && shootReady){
                             shootPow = velToPow(shootVel);
-                            setElbowTarget(shootAngle);
+                            //setElbowTarget(shootAngle);
                             telemetry.addData("Launch Motor Power", velToPow(shootVel));
                             telemetry.addData("Elbow Angle", shootAngle);
                             telemetry.update();
 
-                            if (blockTimer.milliseconds() >= 3)
-                                blocker.setPosition(openPos);
+                            /*if (blockTimer.milliseconds() >= 3)
+                                blocker.setPosition(openPos);*/
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
@@ -399,8 +422,14 @@ public class StraferMain extends LinearOpMode{
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = distToAngle(dist) * OVERSHOOT_MULT;
-        shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_MULT;
+        shootAngle = (distToAngle(dist) - 45) * OVERSHOOT_ANG_MULT;
+        shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
+
+        telemetry.addData("Distance", dist);
+        telemetry.addData("Angle", shootAngle);
+        telemetry.addData("Velocity", shootVel);
+        telemetry.update();
+
         shootPrep = false;
         shootReady = true;
     }
