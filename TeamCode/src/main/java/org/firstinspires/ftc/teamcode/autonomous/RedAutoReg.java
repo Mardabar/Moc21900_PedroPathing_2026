@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.teamcode.RobotPoseStorage;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -29,6 +30,7 @@ public class RedAutoReg extends OpMode{
     // PEDROPATHING VARS
 
     private Follower fol;
+
     private Timer pathTimer, actionTimer, opmodeTimer; // Game timer
     private int pathState; // Current path #
     private int chainNum;
@@ -49,7 +51,7 @@ public class RedAutoReg extends OpMode{
 
     private final Pose startPose = new Pose(56, 8, Math.toRadians(0)); // POSITION
 
-        // Obelisk #21
+    // Obelisk #21
     private final Pose Ob21Grab1GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab1GP1CP = new Pose(56, 35.5, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2P1 = new Pose(36, 59.8, Math.toRadians(0)); // POSITION
@@ -168,6 +170,14 @@ public class RedAutoReg extends OpMode{
         rsLastErr = rsErr;
         ibLastErr = ibErr;
         elLastErr = elErr;
+
+        // This stores the ending position of the bot at the end of auto
+        Pose finalPose = fol.getPose();
+        RobotPoseStorage.currentPose = finalPose;
+
+        // Not sure if this is in the right spot :skull:
+        // Its either inside the loop or outside but outside prolly wouldnt make sense
+        updatePos();
     }
 
     public void buildPaths(int obNum){
@@ -243,4 +253,20 @@ public class RedAutoReg extends OpMode{
     private void setElTarget(double num){
         elTarget = num;
     }
+
+
+    // Updates the pos to the station
+    public void updatePos(){
+        fol.update();
+
+        // Get the position of the robot
+        Pose currentPose = fol.getPose();
+
+        double currentX = currentPose.getX();
+        double currentY = currentPose.getY();
+
+        telemetry.addData("X Position", "%.2f", currentX);
+        telemetry.addData("Y Position", "%.2f", currentY);
+    }
+
 }

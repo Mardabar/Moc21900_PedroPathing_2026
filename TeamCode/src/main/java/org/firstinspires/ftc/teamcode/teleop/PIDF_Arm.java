@@ -1,14 +1,21 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.follower.FollowerConstants;
+
+
 
 @Configurable
 @TeleOp
@@ -76,7 +83,7 @@ public class PIDF_Arm extends OpMode {
   public void init() {
 //    START HERE TMRW
     //controller = new PIDController(p,i,d);
-//    rsPID = new PIDController(p,i,d);
+    //rsPID = new PIDFController(p,i,d);
 
     telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
