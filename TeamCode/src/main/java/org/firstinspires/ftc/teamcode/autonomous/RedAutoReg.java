@@ -15,8 +15,14 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.RobotPoseStorage;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -49,18 +55,29 @@ public class RedAutoReg extends OpMode{
 
     // POSITIONS
 
-    private final Pose startPose = new Pose(56, 8, Math.toRadians(0)); // POSITION
+    private final Pose startPose = new Pose(56, 8, Math.toRadians(90)); // STARTING POSITION
+    private final Pose parkPose = new Pose(20, 20, Math.toRadians(45)); // PARKING POSITION
 
-    // Obelisk #21
+        // Obelisk #21 --------------------------------------------------
     private final Pose Ob21Grab1GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab1GP1CP = new Pose(56, 35.5, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2P1 = new Pose(36, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab2P1CP = new Pose(61, 59.8, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob21Score1 = new Pose(61, 76.5, Math.toRadians(42)); // POSITION
+    private final Pose Ob21Grab1G2 = new Pose(31, 59.8, Math.toRadians(0)); // POSITION
+    private final Pose Ob21Grab1G2CP = new Pose(59, 59.8, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob21Grab2PP2 = new Pose(31, 84, Math.toRadians(0)); // POSITION
+    private final Pose Ob21Grab2PP2CP = new Pose(64, 84, Math.toRadians(0)); // CONTROL POINT
+    // Ob21Score2 is the same as Ob21Score1
+    private final Pose Ob21Grab3 = new Pose(19, 98, Math.toRadians(90)); // POSITION
+    private final Pose Ob21Grab3CP = new Pose(60, 98, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob21GrabGPP3 = new Pose(19, 42, Math.toRadians(90)); // POSITION
+    private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(56)); // POSITION
 
-        // Obelisk #22
+        // Obelisk #22 --------------------------------------------------
 
 
-        // Obelisk #23
+        // Obelisk #23 --------------------------------------------------
 
 
     // PID CONSTANTS & OTHER MOTORS
@@ -76,11 +93,9 @@ public class RedAutoReg extends OpMode{
     private static double p = 0, i = 0, d = 0, f = 0;
     private static PIDFCoefficients coef;
 
-    // Encoder resolution for launch motors is 28 PPR
-    // Encoder resolution for intake motor is 384.5 PPR
     // Encoder resolution for elbow motor is 751.8 PPR
 
-    private static double ticksInDeg = 0;
+    private static double ANGLE_CONST = 2.08833333;
     private static double lsTarget;
     private static double rsTarget;
     private static double ibTarget;
@@ -97,11 +112,18 @@ public class RedAutoReg extends OpMode{
     // PATH CHAINS
 
         // Obelisk #21
-    private PathChain pathOb21Grab1GP1, pathOb21Grab2P1;
+    private PathChain pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
+                pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
         // Obelisk #22
     private PathChain pathOb22Grab1G1;
         // Obelisk #23
     private PathChain pathOb23Grab1PP1;
+
+    // OTHER VARS
+
+    private ElapsedTime timer;
+    private double dur;
+    private int timerCount = -1;
 
     @Override
     public void init(){
@@ -120,11 +142,14 @@ public class RedAutoReg extends OpMode{
 
         // CAMERA INIT
 
-        apTag = new AprilTagProcessor.Builder().build();
-        apTag.setDecimation(2); // Trades some detection range for detection rate
+        apTag = new AprilTagProcessor.Builder()
+                .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
+                        new YawPitchRollAngles(AngleUnit.DEGREES, 0, 14, 0, 0))
+                .build();
+        apTag.setDecimation(2);
 
         visPort = new VisionPortal.Builder()
-                .setCamera(BuiltinCameraDirection.BACK)
+                .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
                 .addProcessor(apTag)
                 .build();
 
@@ -183,7 +208,21 @@ public class RedAutoReg extends OpMode{
     public void buildPaths(int obNum){
         setChainNum(obNum);
         if (obNum == GPP_ID){
+            pathOb21Grab1GP1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(startPose, Ob21Grab1GP1CP, Ob21Grab1GP1))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), Ob21Grab1GP1.getHeading())
+                    .setBrakingStrength(4)
+                    .build();
 
+            pathOb21Grab2P1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob21Grab1GP1, Ob21Grab2P1CP, Ob21Grab2P1))
+                    .setLinearHeadingInterpolation(Ob21Grab1GP1.getHeading(), Ob21Grab2P1.getHeading())
+                    .build();
+
+            pathOb21Score1 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob21Grab2P1, Ob21Score1))
+                    .setLinearHeadingInterpolation(Ob21Grab2P1.getHeading(), Ob21Score1.getHeading())
+                    .build();
         }
         else if (obNum == PGP_ID){
 
@@ -209,6 +248,11 @@ public class RedAutoReg extends OpMode{
         else if (chainNum == 21 && tagFound) {
             switch (pathState) {
                 case 0:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb21Grab1GP1);
+                        timer.reset();
+                        timerCount = 0;
+                    }
                     break;
 
                 case 1:
