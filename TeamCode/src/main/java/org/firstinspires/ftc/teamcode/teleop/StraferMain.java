@@ -88,8 +88,11 @@ public class StraferMain extends LinearOpMode{
     private double beltSpeed = 1;
     private double elbowSpeed = 0.2;
 
-    private double blockPos = 0.3;
     private double openPos = 0.1;
+    private double blockPos = 0.3;
+    private ElapsedTime feedTimer;
+    private double feedDur = 1;
+    private int feeding = 1; // Positive is feeding; negative is not feeding
 
     // SHOOTING VARS
 
@@ -100,7 +103,6 @@ public class StraferMain extends LinearOpMode{
 
     private double shootVel;
     private double shootAngle;
-    private double elbowTarget;
     private double shootPow;
     private boolean shootPrep;
     private boolean shootReady;
@@ -146,7 +148,7 @@ public class StraferMain extends LinearOpMode{
         elbow.setDirection(DcMotor.Direction.REVERSE);
 
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setPower(elbowSpeed);
 
         blocker = hardwareMap.get(Servo.class, "blocker");
@@ -172,7 +174,9 @@ public class StraferMain extends LinearOpMode{
         speed = mainSpeed;
         shootReady = false;
         shootPrep = false;
+
         blockTimer = new ElapsedTime();
+        feedTimer = new ElapsedTime();
         blocker.scaleRange(openPos, blockPos);
         blocker.setPosition(1);
 
@@ -255,16 +259,10 @@ public class StraferMain extends LinearOpMode{
 
                         // ACCESSORY DRIVER CONTROLS
 
-                        if (gamepad2.right_bumper) {
-                            belt.setPower(beltSpeed);
-                            br.setPower(beltSpeed);
-                            bl.setPower(-beltSpeed);
-                        }
-                        else if (gamepad2.left_bumper) {
-                            belt.setPower(-beltSpeed);
-                            br.setPower(-beltSpeed);
-                            bl.setPower(beltSpeed);
-                        }
+                        if (gamepad2.right_bumper && !shootReady)
+                            runBelt(beltSpeed);
+                        else if (gamepad2.left_bumper && !shootReady)
+                            runBelt(-beltSpeed);
                         else if (gamepad2.a && !shootPrep && !shootReady){
                             List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                             // Runs through each apriltag found and checks if it's a target
@@ -291,9 +289,7 @@ public class StraferMain extends LinearOpMode{
                             }
                         }
                         else {
-                            belt.setPower(0);
-                            br.setPower(0);
-                            bl.setPower(0);
+                            runBelt(0);
                         }
 
                         if (gamepad2.a && shootReady){
@@ -303,7 +299,7 @@ public class StraferMain extends LinearOpMode{
                             telemetry.update();
 
                             if (blockTimer.milliseconds() >= 3000)
-                                blocker.setPosition(0);
+                                feedLauncher();
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
@@ -360,7 +356,6 @@ public class StraferMain extends LinearOpMode{
 
                         if (gamepad1.a && shootReady){
                             shootPow = velToPow(shootVel);
-                            elbowTarget = angleToEncoder(shootAngle);
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
@@ -467,5 +462,25 @@ public class StraferMain extends LinearOpMode{
     private void setElbowTarget(double angle){
         elbow.setTargetPosition((int) angleToEncoder(angle));
         elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
+    private void runBelt(double speed){
+        belt.setPower(speed);
+        br.setPower(speed);
+        bl.setPower(-speed);
+    }
+
+    private void feedLauncher(){
+        if (feedTimer.milliseconds() < feedDur && feeding == 1){
+            blocker.setPosition(0);
+            runBelt(-beltSpeed);
+        }
+        else if (feedTimer.milliseconds() < feedDur && feeding == -1) {
+            blocker.setPosition(0);
+        }
+        else {
+            feeding *= -1;
+            feedTimer.reset();
+        }
     }
 }
