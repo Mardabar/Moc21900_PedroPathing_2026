@@ -59,7 +59,7 @@ public class RedAutoReg extends OpMode{
     // POSITIONS
 
     private final Pose startPose = new Pose(56, 8, Math.toRadians(90)); // STARTING POSITION
-    private final Pose parkPose = new Pose(20, 20, Math.toRadians(45)); // PARKING POSITION
+    private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
         // Obelisk #21 --------------------------------------------------
     private final Pose Ob21Grab1GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
@@ -78,10 +78,36 @@ public class RedAutoReg extends OpMode{
     private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(56)); // POSITION
 
         // Obelisk #22 --------------------------------------------------
-
+    private final Pose Ob22Grab1P1 = new Pose(36, 84, Math.toRadians(0)); // POSITION
+    private final Pose Ob22Grab1P1CP = new Pose(70, 96, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob22Grab2GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
+    private final Pose Ob22Grab2GP1CP = new Pose(56, 35.5, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob22Score1 = new Pose(61, 76.5, Math.toRadians(42)); // POSITION
+    private final Pose Ob22Score1CP = new Pose(60, 50, Math.toRadians(42)); // CONTROL POINT
+    private final Pose Ob22Grab1PG2 = new Pose(26, 84, Math.toRadians(0)); // POSITION
+    private final Pose Ob22Grab1PG2CP = new Pose(60, 88, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob22Grab2P2 = new Pose(26, 35.5, Math.toRadians(0)); // POSITION
+    private final Pose Ob22Grab2P2CP = new Pose(84, 40, Math.toRadians(0)); // CONTROL POINT
+    // Score2 is same as Score1
+    private final Pose Ob22Grab3 = new Pose(45, 59.8, Math.toRadians(0)); // POSITION
+    private final Pose Ob22Grab3CP = new Pose(62, 62, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob22GrabPGP3 = new Pose(26, 59.8, Math.toRadians(0)); // POSITION
+    private final Pose Ob22Score3 = new Pose(61, 18, Math.toRadians(56)); // POSITION
 
         // Obelisk #23 --------------------------------------------------
-
+    private final Pose Ob23Grab1PP1 = new Pose(31, 84, Math.toRadians(0)); // POSITION
+    private final Pose Ob23Grab1PP1CP = new Pose(68, 96, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob23Grab2G1 = new Pose(36, 35.5, Math.toRadians(0)); // POSITION
+    private final Pose Ob23Grab2G1CP = new Pose(70, 45, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob23Score1 = new Pose(61, 18, Math.toRadians(56)); // POSITION
+    private final Pose Ob23Grab1P2 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
+    private final Pose Ob23Grab1P2CP = new Pose(60, 44, Math.toRadians(0)); // CONTROL POINT
+    private final Pose Ob23Grab2PG2 = new Pose(31, 59.8, Math.toRadians(0)); // POSITION
+    private final Pose Ob23Grab2PG2CP = new Pose(60, 59.8, Math.toRadians(0)); // CONTROL POINT
+    // Score2 same as Score1
+    private final Pose Ob23Grab3 = new Pose(19, 22, Math.toRadians(-90)); // POSITION
+    private final Pose Ob23GrabPPG3 = new Pose(19, 77, Math.toRadians(-90)); // POSITION
+    // Score3 same as Score1
 
     // SHOOTING VARS
 
@@ -116,9 +142,11 @@ public class RedAutoReg extends OpMode{
     private PathChain pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
                 pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
         // Obelisk #22
-    private PathChain pathOb22Grab1G1;
+    private PathChain pathOb22Grab1P1, pathOb22Grab2GP1, pathOb22Score1, pathOb22Grab1PG2, pathOb22Grab2P2,
+                pathOb22Score2, pathOb22Grab3, pathOb22GrabPGP3, pathOb22Score3, pathOb22Park;
         // Obelisk #23
-    private PathChain pathOb23Grab1PP1;
+    private PathChain pathOb23Grab1PP1, pathOb23Grab2G1, pathOb23Score1, pathOb23Grab1P2, pathOb23Grab2PG2,
+                pathOb23Score2, pathOb23Grab3, pathOb23GrabPPG3, pathOb23Score3, pathOb23Park;
 
     // OTHER VARS
 
@@ -151,6 +179,7 @@ public class RedAutoReg extends OpMode{
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setPower(elbowSpeed);
 
+        blocker.scaleRange(openPos, blockPos);
         blocker.setPosition(1);
 
         // TIMER INIT
@@ -251,10 +280,106 @@ public class RedAutoReg extends OpMode{
                     .build();
         }
         else if (obNum == PGP_ID){
+            pathOb22Grab1P1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(startPose, Ob22Grab1P1CP, Ob22Grab1P1))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), Ob22Grab1P1.getHeading())
+                    .build();
 
+            pathOb22Grab2GP1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob22Grab1P1, Ob22Grab2GP1CP, Ob22Grab2GP1))
+                    .setLinearHeadingInterpolation(Ob22Grab1P1.getHeading(), Ob22Grab2GP1.getHeading())
+                    .build();
+
+            pathOb22Score1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob22Grab1P1, Ob22Score1CP, Ob22Score1))
+                    .setLinearHeadingInterpolation(Ob22Grab2GP1.getHeading(), Ob22Score1.getHeading())
+                    .build();
+
+            pathOb22Grab1PG2 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob22Score1, Ob22Grab1PG2CP, Ob22Grab1PG2))
+                    .setLinearHeadingInterpolation(Ob22Score1.getHeading(), Ob22Grab1PG2.getHeading())
+                    .build();
+
+            pathOb22Grab2P2 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob22Grab1PG2, Ob22Grab2P2CP, Ob22Grab2P2))
+                    .setLinearHeadingInterpolation(Ob22Grab1PG2.getHeading(), Ob22Grab2P2.getHeading())
+                    .build();
+
+            pathOb22Score2 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob22Grab2P2, Ob22Score1CP, Ob22Score1))
+                    .setLinearHeadingInterpolation(Ob22Grab2P2.getHeading(), Ob22Score1.getHeading())
+                    .build();
+
+            pathOb22Grab3 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob22Score1, Ob22Grab3CP, Ob22Grab3))
+                    .setLinearHeadingInterpolation(Ob22Score1.getHeading(), Ob22Grab3.getHeading())
+                    .build();
+
+            pathOb22GrabPGP3 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob22Grab3, Ob22GrabPGP3))
+                    .setLinearHeadingInterpolation(Ob22Grab3.getHeading(), Ob22GrabPGP3.getHeading())
+                    .build();
+
+            pathOb22Score3 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob22GrabPGP3, Ob22Score3))
+                    .setLinearHeadingInterpolation(Ob22GrabPGP3.getHeading(), Ob22Score3.getHeading())
+                    .build();
+
+            pathOb22Park = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob22Score3, parkPose))
+                    .setLinearHeadingInterpolation(Ob22Score3.getHeading(), parkPose.getHeading())
+                    .build();
         }
         else if (obNum == PPG_ID){
+            pathOb23Grab1PP1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(startPose, Ob23Grab1PP1CP, Ob23Grab1PP1))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), Ob23Grab1PP1.getHeading())
+                    .build();
 
+            pathOb23Grab2G1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob23Grab1PP1, Ob23Grab2G1CP, Ob23Grab2G1))
+                    .setLinearHeadingInterpolation(Ob23Grab1PP1.getHeading(), Ob23Grab2G1.getHeading())
+                    .build();
+
+            pathOb23Score1 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob23Grab2G1, Ob23Score1))
+                    .setLinearHeadingInterpolation(Ob23Grab2G1.getHeading(), Ob23Score1.getHeading())
+                    .build();
+
+            pathOb23Grab1P2 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob23Score1, Ob23Grab1P2CP, Ob23Grab1P2))
+                    .setLinearHeadingInterpolation(Ob23Score1.getHeading(), Ob23Grab1P2.getHeading())
+                    .build();
+
+            pathOb23Grab2PG2 = fol.pathBuilder()
+                    .addPath(new BezierCurve(Ob23Grab1P2, Ob23Grab2PG2CP, Ob23Grab2PG2))
+                    .setLinearHeadingInterpolation(Ob23Grab1P2.getHeading(), Ob23Grab2PG2.getHeading())
+                    .build();
+
+            pathOb23Score2 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob23Grab2PG2, Ob23Score1))
+                    .setLinearHeadingInterpolation(Ob23Grab2PG2.getHeading(), Ob23Score1.getHeading())
+                    .build();
+
+            pathOb23Grab3 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob23Score1, Ob23Grab3))
+                    .setLinearHeadingInterpolation(Ob23Score1.getHeading(), Ob23Grab3.getHeading())
+                    .build();
+
+            pathOb23GrabPPG3 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob23Grab3, Ob23GrabPPG3))
+                    .setLinearHeadingInterpolation(Ob23Grab3.getHeading(), Ob23GrabPPG3.getHeading())
+                    .build();
+
+            pathOb23Score3 = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob23GrabPPG3, Ob23Score1))
+                    .setLinearHeadingInterpolation(Ob23GrabPPG3.getHeading(), Ob23Score1.getHeading())
+                    .build();
+
+            pathOb23Park = fol.pathBuilder()
+                    .addPath(new BezierLine(Ob23Score1, parkPose))
+                    .setLinearHeadingInterpolation(Ob23Score1.getHeading(), parkPose.getHeading())
+                    .build();
         }
     }
 
@@ -327,7 +452,7 @@ public class RedAutoReg extends OpMode{
                 case 6:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Grab3);
-                        setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 9, 135);
+                        setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 135, 135);
                         setPathState(7);
                     }
                     break;
@@ -364,10 +489,187 @@ public class RedAutoReg extends OpMode{
             }
         }
         else if (chainNum == 22 && tagFound){
+            switch (pathState) {
+                case 0:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab1P1);
+                        setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 135, 135);
+                        setPathState(1);
+                    }
+                    break;
 
+                case 1:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab2GP1);
+                        setPathState(2);
+                    }
+                    break;
+
+                case 2:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Score1);
+                        shoot();
+                    }
+
+                    if (shootTimerCount == 2){
+                        blocker.setPosition(1);
+                        shootTimerCount = -1;
+                        setPathState(3);
+                    }
+                    break;
+                case 3:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab1PG2);
+                        setPathState(4);
+                    }
+                    break;
+                case 4:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab2P2);
+                        setPathState(5);
+                    }
+                    break;
+                case 5:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Score2);
+                        shoot();
+                    }
+
+                    if (shootTimerCount == 2){
+                        blocker.setPosition(1);
+                        shootTimerCount = -1;
+                        setPathState(6);
+                    }
+                    break;
+                case 6:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab3);
+                        setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 135, 135);
+                        setPathState(7);
+                    }
+                    break;
+                case 7:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22GrabPGP3);
+                        setPathState(8);
+                    }
+                    break;
+                case 8:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Score3);
+                        shoot();
+                    }
+
+                    if (shootTimerCount == 2){
+                        blocker.setPosition(1);
+                        shootTimerCount = -1;
+                        setPathState(9);
+                    }
+                    break;
+                case 9:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Park);
+                        setPathState(10);
+                    }
+                    break;
+
+                case 10:
+                    if (!fol.isBusy()) {
+                        setPathState(-1);
+                    }
+                    break;
+            }
         }
         else if (chainNum == 23 && tagFound){
+            switch (pathState) {
+                case 0:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab1PP1);
+                        setShootPos(Ob23Score1.getX(), Ob23Score1.getY(), 135, 135);
+                        setPathState(1);
+                    }
+                    break;
 
+                case 1:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab2G1);
+                        setPathState(2);
+                    }
+                    break;
+
+                case 2:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Score1);
+                        shoot();
+                    }
+
+                    if (shootTimerCount == 2){
+                        blocker.setPosition(1);
+                        shootTimerCount = -1;
+                        setPathState(3);
+                    }
+                    break;
+                case 3:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab1P2);
+                        setPathState(4);
+                    }
+                    break;
+                case 4:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab2PG2);
+                        setPathState(5);
+                    }
+                    break;
+                case 5:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Score2);
+                        shoot();
+                    }
+
+                    if (shootTimerCount == 2){
+                        blocker.setPosition(1);
+                        shootTimerCount = -1;
+                        setPathState(6);
+                    }
+                    break;
+                case 6:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab3);
+                        setPathState(7);
+                    }
+                    break;
+                case 7:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23GrabPPG3);
+                        setPathState(8);
+                    }
+                    break;
+                case 8:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Score3);
+                        shoot();
+                    }
+
+                    if (shootTimerCount == 2){
+                        blocker.setPosition(1);
+                        shootTimerCount = -1;
+                        setPathState(9);
+                    }
+                    break;
+                case 9:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Park);
+                        setPathState(10);
+                    }
+                    break;
+
+                case 10:
+                    if (!fol.isBusy()) {
+                        setPathState(-1);
+                    }
+                    break;
+            }
         }
     }
 

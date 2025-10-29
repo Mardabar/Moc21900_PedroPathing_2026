@@ -148,7 +148,7 @@ public class StraferMain extends LinearOpMode{
         elbow.setDirection(DcMotor.Direction.REVERSE);
 
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setPower(elbowSpeed);
 
         blocker = hardwareMap.get(Servo.class, "blocker");
@@ -259,37 +259,37 @@ public class StraferMain extends LinearOpMode{
 
                         // ACCESSORY DRIVER CONTROLS
 
-                        if (gamepad2.right_bumper && !shootReady)
-                            runBelt(beltSpeed);
-                        else if (gamepad2.left_bumper && !shootReady)
-                            runBelt(-beltSpeed);
-                        else if (gamepad2.a && !shootPrep && !shootReady){
-                            List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
-                            // Runs through each apriltag found and checks if it's a target
-                            for (AprilTagDetection tag : detections){
-                                if (Objects.equals(tag.metadata.name, "RedTarget") || Objects.equals(tag.metadata.name, "BlueTarget"))
-                                    foundTag = tag;
-                                // Adds telemetry to the console specifying the coords of the robot and name of the april tag
-                                telemetry.addData("Tag Name", tag.metadata.name);
-                                telemetry.addData("Robot Coordinates",
-                                        "(" + tag.ftcPose.x + ", " + tag.ftcPose.y + ")");
-                                telemetry.update();
-                            }
+                        if (!shootReady) {
+                            if (gamepad2.right_bumper)
+                                runBelt(beltSpeed);
+                            else if (gamepad2.left_bumper)
+                                runBelt(-beltSpeed);
+                            else if (gamepad2.a && !shootPrep) {
+                                List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
+                                // Runs through each apriltag found and checks if it's a target
+                                for (AprilTagDetection tag : detections) {
+                                    if (Objects.equals(tag.metadata.name, "RedTarget") || Objects.equals(tag.metadata.name, "BlueTarget"))
+                                        foundTag = tag;
+                                    // Adds telemetry to the console specifying the coords of the robot and name of the april tag
+                                    telemetry.addData("Tag Name", tag.metadata.name);
+                                    telemetry.addData("Robot Coordinates",
+                                            "(" + tag.ftcPose.x + ", " + tag.ftcPose.y + ")");
+                                    telemetry.update();
+                                }
 
-                            // Checks if the correct april tag was found before the shooting position gets set
-                            if (foundTag != null) {
-                                if (color == 0)
-                                    setShootPos(60, 60, 135, 135);
-                                else if (color == 1)
-                                    setShootPos(foundTag.ftcPose.x, foundTag.ftcPose.y, 9, 135);
+                                // Checks if the correct april tag was found before the shooting position gets set
+                                if (foundTag != null) {
+                                    if (color == 0)
+                                        setShootPos(60, 60, 135, 135);
+                                    else if (color == 1)
+                                        setShootPos(foundTag.ftcPose.x, foundTag.ftcPose.y, 9, 135);
 
-                                blocker.setPosition(1);
-                                blockTimer.reset();
-                                shootPrep = true;
-                            }
-                        }
-                        else {
-                            runBelt(0);
+                                    blocker.setPosition(1);
+                                    blockTimer.reset();
+                                    shootPrep = true;
+                                }
+                            } else
+                                runBelt(0);
                         }
 
                         if (gamepad2.a && shootReady){
@@ -306,6 +306,7 @@ public class StraferMain extends LinearOpMode{
                         }
                         else if (shootReady){
                             blocker.setPosition(1);
+                            runBelt(0);
                             ls.setPower(0);
                             rs.setPower(0);
                             shootPrep = false;
@@ -473,10 +474,11 @@ public class StraferMain extends LinearOpMode{
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 1){
             blocker.setPosition(0);
-            runBelt(-beltSpeed);
+            runBelt(0);
         }
         else if (feedTimer.milliseconds() < feedDur && feeding == -1) {
-            blocker.setPosition(0);
+            blocker.setPosition(1);
+            runBelt(-beltSpeed);
         }
         else {
             feeding *= -1;
