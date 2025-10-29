@@ -38,21 +38,29 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 public class StraferOpV2 extends LinearOpMode {
 
     // Motors and Servos
-    private DcMotor rf;
-    private DcMotor lf;
-    private DcMotor rb;
     private DcMotor lb;
-    private DcMotor rs;
+    private DcMotor rb;
+    private DcMotor lf;
+    private DcMotor rf;
     private DcMotor ls;
+    private DcMotor rs;
     private DcMotor belt;
     private DcMotor elbow;
-
+    
+    private CRServo br;
+    private CRServo bl;
+    private Servo blocker;
 
     // Other variables we'll need
     private String shootMode = null;
     private double launchPower = 0;
     private double speed;
+    private double beltSpeed = 1;
+    private double elbowSpeed = 0.2;
 
+    // Servo position for the blocker servo prolly have to change today
+    private double blockPos = 0.3;
+    private double openPos = 0.1;
 
     // Holds the power of the motor so it doesn't get messed up with the if statement here
     private double powerSetpoint = 0.0;
@@ -65,12 +73,14 @@ public class StraferOpV2 extends LinearOpMode {
     public static double topPower = 0.55;     // Default power for Top D-Pad Right
     public static double boxPower = 0.30;     // Default power for Box D-Pad Left
 
+
+
     private Follower follower;
 
 
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
 
 
         // Motors are set to each of its variables
@@ -82,6 +92,7 @@ public class StraferOpV2 extends LinearOpMode {
         ls = hardwareMap.get(DcMotor.class,"ls");
         belt = hardwareMap.get(DcMotor.class, "belt");
         elbow = hardwareMap.get(DcMotor.class, "elbow");
+        
 
         // Zero power behaviors are set for the motors
         rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -96,6 +107,8 @@ public class StraferOpV2 extends LinearOpMode {
         lf.setDirection(DcMotorSimple.Direction.REVERSE);
         rb.setDirection(DcMotorSimple.Direction.FORWARD);
         lb.setDirection(DcMotorSimple.Direction.REVERSE);
+        belt.setDirection(DcMotor.Direction.FORWARD);
+        elbow.setDirection(DcMotor.Direction.REVERSE);
 
         // Stopping and resetting encoders in erm the uh other motors
         rs.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -103,6 +116,15 @@ public class StraferOpV2 extends LinearOpMode {
 
         rs.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         ls.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        
+        // Servo naming 
+        blocker = hardwareMap.get(Servo.class, "blocker");
+        br = hardwareMap.get(CRServo.class, "br");
+        bl = hardwareMap.get(CRServo.class, "bl");
 
 
         /* Variables needed for pedro and updating position on the field
@@ -115,7 +137,6 @@ public class StraferOpV2 extends LinearOpMode {
 
 
         // Robot waits for the opmode to be activated
-        if (isStopRequested()) return;
         waitForStart();
 
 
@@ -127,7 +148,7 @@ public class StraferOpV2 extends LinearOpMode {
             follower.setStartingPose(RobotPoseStorage.currentPose); */
 
 
-
+                
             lb.setPower(gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
             rb.setPower(gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
@@ -142,6 +163,21 @@ public class StraferOpV2 extends LinearOpMode {
                 speed = 1;
 
 
+            // Funtion for controlling the belt and servo intake stuff 
+            if (gamepad2.right_bumper) {
+                belt.setPower(beltSpeed);
+                br.setPower(1);
+                bl.setPower(-1);
+            } else if (gamepad2.left_bumper) {
+                belt.setPower(-beltSpeed);
+                br.setPower(-1);
+                bl.setPower(1);
+            } else {
+                belt.setPower(0);
+                br.setPower(0);
+                bl.setPower(0);
+            }
+            
             // Here is the mode swap chunk thing that will need alot of testing on the field
 
             // When robot is near middle of shooting area
@@ -167,7 +203,17 @@ public class StraferOpV2 extends LinearOpMode {
                 powerSetpoint = boxPower /*.3*/;
             }
 
+            // Stuff for controlling the elbow
+            /** ADD SERVO CODE HERE WHEN GABE GETS HIS DESIGN FINISHED */ 
+            if (gamepad2.left_trigger > 0.2){
+                elbow.setPower(0.3);
+            } else if (gamepad2.right_trigger > 0.2){
+                elbow.setPower(-0.3);
+            } else {
+                elbow.setPower(0); 
+            }
 
+            
             // Function that turns the motors on and off
             if (gamepad2.y) {
                 // If Y is pressed sets the desired speed
