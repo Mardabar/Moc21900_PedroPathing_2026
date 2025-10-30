@@ -417,11 +417,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score1);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(3);
                     }
                     break;
@@ -441,11 +443,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score2);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(6);
                     }
                     break;
@@ -466,11 +470,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score3);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(9);
                     }
                     break;
@@ -509,11 +515,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Score1);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(3);
                     }
                     break;
@@ -533,11 +541,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Score2);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(6);
                     }
                     break;
@@ -558,11 +568,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Score3);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(9);
                     }
                     break;
@@ -601,11 +613,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Score1);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(3);
                     }
                     break;
@@ -625,11 +639,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Score2);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(6);
                     }
                     break;
@@ -649,11 +665,13 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Score3);
                         shoot();
+                        timerCount++;
                     }
 
                     if (shootTimerCount == 2){
                         blocker.setPosition(1);
                         shootTimerCount = -1;
+                        timerCount = -1;
                         setPathState(9);
                     }
                     break;
@@ -738,7 +756,7 @@ public class RedAutoReg extends OpMode{
             ls.setPower(velToPow(shootVel));
             rs.setPower(velToPow(shootVel));
         }
-        timer.reset();
+        shootTimer.reset();
         shootTimerCount = 1;
         while (shootTimer.milliseconds() < 3000 && shootTimerCount == 1){
             feedLauncher();
@@ -747,6 +765,7 @@ public class RedAutoReg extends OpMode{
 
         ls.setPower(0);
         rs.setPower(0);
+        blocker.setPosition(1);
     }
 
     private void runBelt(double speed){
@@ -758,10 +777,11 @@ public class RedAutoReg extends OpMode{
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 1){
             blocker.setPosition(0);
+            runBelt(-beltSpeed);
         }
         else if (feedTimer.milliseconds() < 550 && feeding == -1) {
             blocker.setPosition(1);
-            runBelt(-beltSpeed);
+            runBelt(0);
         }
         else {
             feeding *= -1;
