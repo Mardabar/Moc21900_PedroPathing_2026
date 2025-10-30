@@ -1,3 +1,4 @@
+
 /**
  * build.common.gradle
  *
@@ -114,6 +115,4 @@ android {
 
 repositories {
     mavenCentral()
-
 }
-
