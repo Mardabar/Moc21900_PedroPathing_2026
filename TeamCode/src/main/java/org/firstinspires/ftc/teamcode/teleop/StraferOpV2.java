@@ -99,10 +99,10 @@ public class StraferOpV2 extends LinearOpMode {
         ls.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Motor direction is set for straight forward values prolly will have to change later
-        rf.setDirection(DcMotorSimple.Direction.FORWARD);
-        lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        rb.setDirection(DcMotorSimple.Direction.FORWARD);
-        lb.setDirection(DcMotorSimple.Direction.REVERSE);
+        rf.setDirection(DcMotorSimple.Direction.REVERSE);
+        lf.setDirection(DcMotorSimple.Direction.FORWARD);
+        rb.setDirection(DcMotorSimple.Direction.REVERSE);
+        lb.setDirection(DcMotorSimple.Direction.FORWARD);
         belt.setDirection(DcMotor.Direction.FORWARD);
         elbow.setDirection(DcMotor.Direction.REVERSE);
 

@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.RobotPoseStorage;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -28,7 +29,6 @@ public class CloseAutoV1 extends OpMode {
 
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState; // Current path
-    private int timerCount = -1;
 
     // Variables for april tag stuff but idk how to use yet soooo good job Leif and Vlad
 
@@ -43,8 +43,8 @@ public class CloseAutoV1 extends OpMode {
     private final int PPG_ID = 23;
 
     // Positions
-    private final Pose startPose = new Pose(21,122.5,144); // Starting position
-    private final Pose shootPose = new Pose(38,105.5,144); // Shooting position
+    private final Pose startPose = new Pose(21,122.5, Math.toRadians(144)); // Starting position
+    private final Pose shootPose = new Pose(58,91,Math.toRadians(144)); // Shooting position
     private final Pose parkPose = new Pose(105.25,33,90);
 
 
@@ -59,16 +59,114 @@ public class CloseAutoV1 extends OpMode {
     private DcMotor elbow;
 
 
-    private double elbowSpeed = 0.5;
 
     private CRServo bl;
     private CRServo br;
-    private double beltSpeed = 1;
 
     private Servo blocker;
     private double openPos = 0.1;
     private double blockPos = 0.3;
     private ElapsedTime timer;
+    private double dur;
+    private int timerCount = -1;
+
+    private ElapsedTime shootTimer;
+    private ElapsedTime feedTimer;
+    private int shootTimerCount = -1;
+    private double feedDur = 400;
+    private double retDur = 800;
+    private int feeding = 1;
+
+    private ElapsedTime elbowTimer;
+    private int elbowTargetPosition;
+
+    double elbowPos = 0;
+    double beltSpeed = 1;
+
+    public void setElbowTargetPosition(int targetPosition, double power) {
+        // Stop and reset the encoder if necessary, then set to RUN_TO_POSITION
+        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elbow.setTargetPosition(targetPosition);
+        elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        elbow.setPower(power);
+    }
+
+    public boolean isElbowMoveFinished() {
+        return !elbow.isBusy();
+    }
+
+    public void startElbowTimeMove(double power, long duration) {
+        elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        dur = duration;
+        elbowTimer.reset();
+
+        // Start the motor
+        elbow.setPower(power);
+    }
+
+    /**
+     * Checks if the time for the time-based move has elapsed.
+     * @return True if the duration is over, false otherwise.
+     */
+    public boolean isElbowTimeMoveFinished() {
+        return elbowTimer.milliseconds() >= dur;
+    }
+
+    /**
+     * Stops the elbow motor after a time-based move.
+     */
+    public void stopElbowTimeMove() {
+        elbow.setPower(0);
+    }
+
+    // Motor moving stuff
+    private void shoot(){
+        shootTimer.reset();
+        if (shootTimerCount == -1)
+            shootTimerCount = 0;
+
+        while (shootTimer.milliseconds() < 2000 && shootTimerCount == 0){
+            ls.setPower(.47);
+            rs.setPower(.47);
+        }
+        shootTimer.reset();
+        shootTimerCount = 1;
+        while (shootTimer.milliseconds() < 3000 && shootTimerCount == 1){
+            feedLauncher();
+        }
+        shootTimerCount = 2;
+
+        ls.setPower(0);
+        rs.setPower(0);
+        blocker.setPosition(0);
+    }
+
+    private void runBelt(double speed){
+        belt.setPower(speed);
+        br.setPower(speed);
+        bl.setPower(-speed);
+    }
+    private void feedLauncher(){
+        if (feedTimer.milliseconds() < feedDur && feeding == 1){
+            blocker.setPosition(1);
+            runBelt(0);
+        }
+        else if (feedTimer.milliseconds() < retDur && feeding == -1) {
+            blocker.setPosition(0);
+            runBelt(-beltSpeed);
+        }
+        else {
+            feeding *= -1;
+            feedTimer.reset();
+        }
+    }
+
+    public int getElbowPos() {
+        elbowPos = elbow.getCurrentPosition();
+        return elbow.getCurrentPosition();
+    }
 
 
     // Path chains for the path...
@@ -79,6 +177,8 @@ public class CloseAutoV1 extends OpMode {
 
     @Override
     public void init(){
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startPose);
         // Typical init stuff here
 
         ls = hardwareMap.get(DcMotor.class, "ls");
@@ -97,20 +197,21 @@ public class CloseAutoV1 extends OpMode {
 
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        elbow.setPower(elbowSpeed);
 
         blocker.scaleRange(openPos, blockPos);
 
         // Also have to set timer here
         // Will add more stuff later but base timer is good
         timer = new ElapsedTime();
-
+        shootTimer = new ElapsedTime();
+        feedTimer = new ElapsedTime();
         // Path init stuff
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
         setPathState(0);
+        buildPaths();
     }
 
     public void loop(){
@@ -145,14 +246,31 @@ public class CloseAutoV1 extends OpMode {
             case 0:
                 if (!follower.isBusy() && timerCount == -1) {
                     follower.followPath(pathShootPose);
-                    setPathState(1);
+                    setElbowTargetPosition(1180, 0.6);
+//
+//                    dur = 500;
+//                    timer.reset();
+//
+//                  setElbowTarget(712);
+                      setPathState(1);
                 }
+
+//                if (timer.milliseconds() >= dur && timerCount == -1){
+//                    timerCount = 0;
+//                }
+
+//                if (!follower.isBusy() && timerCount == 0){
+//                    dur = 600;
+//                    timerCount = -1;
+//                    setPathState(1);
+//                }
+
                 break;
 
             case 1:
-                if (!follower.isBusy() && timerCount == -1){
-                    follower.followPath(pathParkPose);
-                }
+//                if (!follower.isBusy() && timerCount == -1){
+//                    follower.followPath(pathParkPose);
+//                }
         }
     }
 
@@ -169,7 +287,7 @@ public class CloseAutoV1 extends OpMode {
     }
 
     public void updatePos(){
-        follower.update();
+        //follower.update();
 
         // Get the position of the robot and print to station
 
@@ -177,6 +295,17 @@ public class CloseAutoV1 extends OpMode {
         telemetry.addData("Y Position", follower.getPose().getY());
         telemetry.addData("Heading", follower.getPose().getHeading());
         telemetry.addData("Path state", pathState);
+        telemetry.addData("currentPath", follower.getCurrentPath()); // VERY IMPORTANT
         telemetry.update();
     }
+
+    @Override
+    public void start() {
+        opmodeTimer.resetTimer();
+        setPathState(0);
+        }
+    /** We do not use this because everything should automatically disable **/
+    @Override
+    public void stop() {
+        }
 }
