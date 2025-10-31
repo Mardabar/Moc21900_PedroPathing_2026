@@ -119,6 +119,7 @@ public class SoloStraferOp extends LinearOpMode {
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
+
         // Servo naming
         blocker = hardwareMap.get(Servo.class, "blocker");
         br = hardwareMap.get(CRServo.class, "br");
@@ -206,6 +207,8 @@ public class SoloStraferOp extends LinearOpMode {
             if (gamepad1.dpad_up){
                 shootMode = "Middle";
                 powerSetpoint = middlePower /*.5*/;
+                elbow.setTargetPosition(712);
+                elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             // When robot is at the back of the field in the triangle box
             // Power will need to be high here
@@ -286,6 +289,7 @@ public class SoloStraferOp extends LinearOpMode {
         telemetry.addData("X Position", follower.getPose().getX());
         telemetry.addData("Y Position", follower.getPose().getY());
         telemetry.addData("Heading", follower.getPose().getHeading());
+        telemetry.addData("Elbow pos", elbow.getCurrentPosition());
         telemetry.update();
 
 
