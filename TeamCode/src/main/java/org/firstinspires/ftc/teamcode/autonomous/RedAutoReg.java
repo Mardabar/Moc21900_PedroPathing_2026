@@ -60,6 +60,7 @@ public class RedAutoReg extends OpMode{
     // POSITIONS
 
     private final Pose startPose = new Pose(56, 8, Math.toRadians(90)); // STARTING POSITION
+    private final Pose preScorePose = new Pose(56, 16, Math.toRadians(56)); // PRE-LOAD SCORING POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
         // Obelisk #21 --------------------------------------------------
@@ -134,19 +135,20 @@ public class RedAutoReg extends OpMode{
     private double openPos = 0.1;
     private double blockPos = 0.3;
     private ElapsedTime feedTimer;
-    private double feedDur = 450;
+    private double feedDur = 400;
+    private double retDur = 800;
     private int feeding = 1;
 
     // PATH CHAINS
 
         // Obelisk #21
-    private PathChain pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
+    private PathChain pathOb21PreScore, pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
                 pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
         // Obelisk #22
-    private PathChain pathOb22Grab1P1, pathOb22Grab2GP1, pathOb22Score1, pathOb22Grab1PG2, pathOb22Grab2P2,
+    private PathChain pathOb22PreScore, pathOb22Grab1P1, pathOb22Grab2GP1, pathOb22Score1, pathOb22Grab1PG2, pathOb22Grab2P2,
                 pathOb22Score2, pathOb22Grab3, pathOb22GrabPGP3, pathOb22Score3, pathOb22Park;
         // Obelisk #23
-    private PathChain pathOb23Grab1PP1, pathOb23Grab2G1, pathOb23Score1, pathOb23Grab1P2, pathOb23Grab2PG2,
+    private PathChain pathOb23PreScore, pathOb23Grab1PP1, pathOb23Grab2G1, pathOb23Score1, pathOb23Grab1P2, pathOb23Grab2PG2,
                 pathOb23Score2, pathOb23Grab3, pathOb23GrabPPG3, pathOb23Score3, pathOb23Park;
 
     // OTHER VARS
@@ -229,10 +231,15 @@ public class RedAutoReg extends OpMode{
     public void buildPaths(int obNum){
         setChainNum(obNum);
         if (obNum == GPP_ID){
-            pathOb21Grab1GP1 = fol.pathBuilder()
-                    .addPath(new BezierCurve(startPose, Ob21Grab1GP1CP, Ob21Grab1GP1))
-                    .setLinearHeadingInterpolation(startPose.getHeading(), Ob21Grab1GP1.getHeading())
+            pathOb21PreScore = fol.pathBuilder()
+                    .addPath(new BezierLine(startPose, preScorePose))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
                     .setBrakingStrength(4)
+                    .build();
+
+            pathOb21Grab1GP1 = fol.pathBuilder()
+                    .addPath(new BezierCurve(preScorePose, Ob21Grab1GP1CP, Ob21Grab1GP1))
+                    .setLinearHeadingInterpolation(preScorePose.getHeading(), Ob21Grab1GP1.getHeading())
                     .build();
 
             pathOb21Grab2P1 = fol.pathBuilder()
@@ -281,9 +288,15 @@ public class RedAutoReg extends OpMode{
                     .build();
         }
         else if (obNum == PGP_ID){
+            pathOb22PreScore = fol.pathBuilder()
+                    .addPath(new BezierLine(startPose, preScorePose))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
+                    .setBrakingStrength(4)
+                    .build();
+
             pathOb22Grab1P1 = fol.pathBuilder()
-                    .addPath(new BezierCurve(startPose, Ob22Grab1P1CP, Ob22Grab1P1))
-                    .setLinearHeadingInterpolation(startPose.getHeading(), Ob22Grab1P1.getHeading())
+                    .addPath(new BezierCurve(preScorePose, Ob22Grab1P1CP, Ob22Grab1P1))
+                    .setLinearHeadingInterpolation(preScorePose.getHeading(), Ob22Grab1P1.getHeading())
                     .build();
 
             pathOb22Grab2GP1 = fol.pathBuilder()
@@ -332,9 +345,15 @@ public class RedAutoReg extends OpMode{
                     .build();
         }
         else if (obNum == PPG_ID){
+            pathOb23PreScore = fol.pathBuilder()
+                    .addPath(new BezierLine(startPose, preScorePose))
+                    .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
+                    .setBrakingStrength(4)
+                    .build();
+
             pathOb23Grab1PP1 = fol.pathBuilder()
-                    .addPath(new BezierCurve(startPose, Ob23Grab1PP1CP, Ob23Grab1PP1))
-                    .setLinearHeadingInterpolation(startPose.getHeading(), Ob23Grab1PP1.getHeading())
+                    .addPath(new BezierCurve(preScorePose, Ob23Grab1PP1CP, Ob23Grab1PP1))
+                    .setLinearHeadingInterpolation(preScorePose.getHeading(), Ob23Grab1PP1.getHeading())
                     .build();
 
             pathOb23Grab2G1 = fol.pathBuilder()
@@ -399,6 +418,21 @@ public class RedAutoReg extends OpMode{
         }
         else if (chainNum == 21 && tagFound) {
             switch (pathState) {
+                case -1:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb21PreScore);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(0);
+                    }
+                    break;
+
                 case 0:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Grab1GP1);
@@ -422,7 +456,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(3);
@@ -448,7 +481,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(6);
@@ -475,7 +507,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(9);
@@ -490,13 +521,28 @@ public class RedAutoReg extends OpMode{
 
                 case 10:
                     if (!fol.isBusy()) {
-                        setPathState(-1);
+                        setPathState(-2);
                     }
                     break;
             }
         }
         else if (chainNum == 22 && tagFound){
             switch (pathState) {
+                case -1:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22PreScore);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(0);
+                    }
+                    break;
+
                 case 0:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Grab1P1);
@@ -520,7 +566,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(3);
@@ -546,7 +591,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(6);
@@ -573,7 +617,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(9);
@@ -588,13 +631,28 @@ public class RedAutoReg extends OpMode{
 
                 case 10:
                     if (!fol.isBusy()) {
-                        setPathState(-1);
+                        setPathState(-2);
                     }
                     break;
             }
         }
         else if (chainNum == 23 && tagFound){
             switch (pathState) {
+                case -1:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23PreScore);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(0);
+                    }
+                    break;
+
                 case 0:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Grab1PP1);
@@ -618,7 +676,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(3);
@@ -644,7 +701,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(6);
@@ -670,7 +726,6 @@ public class RedAutoReg extends OpMode{
                     }
 
                     if (shootTimerCount == 2){
-                        blocker.setPosition(1);
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(9);
@@ -685,7 +740,7 @@ public class RedAutoReg extends OpMode{
 
                 case 10:
                     if (!fol.isBusy()) {
-                        setPathState(-1);
+                        setPathState(-2);
                     }
                     break;
             }
@@ -766,7 +821,7 @@ public class RedAutoReg extends OpMode{
 
         ls.setPower(0);
         rs.setPower(0);
-        blocker.setPosition(1);
+        blocker.setPosition(0);
     }
 
     private void runBelt(double speed){
@@ -777,12 +832,12 @@ public class RedAutoReg extends OpMode{
 
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 1){
-            blocker.setPosition(0);
-            runBelt(-beltSpeed);
-        }
-        else if (feedTimer.milliseconds() < 550 && feeding == -1) {
             blocker.setPosition(1);
             runBelt(0);
+        }
+        else if (feedTimer.milliseconds() < retDur && feeding == -1) {
+            blocker.setPosition(0);
+            runBelt(-beltSpeed);
         }
         else {
             feeding *= -1;

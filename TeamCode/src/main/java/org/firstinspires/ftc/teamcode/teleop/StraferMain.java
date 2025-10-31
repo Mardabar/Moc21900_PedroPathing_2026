@@ -91,16 +91,17 @@ public class StraferMain extends LinearOpMode{
     private double beltSpeed = 1;
     private double elbowSpeed = 0.2;
 
-    private double openPos = 0.1;
-    private double feedPos = 0.3;
+    private double openPos = 0.53;
+    private double feedPos = 0.1;
     private ElapsedTime feedTimer;
-    private double feedDur = 500;
+    private double feedDur = 400;
+    private double retDur = 800;
     private int feeding = 1; // Positive is feeding; negative is not feeding
 
     // SHOOTING VARS
 
-    private final double OVERSHOOT_VEL_MULT = 1.5;
-    private final double OVERSHOOT_ANG_MULT = 1.2;
+    private final double OVERSHOOT_VEL_MULT = 1.897;
+    private final double OVERSHOOT_ANG_MULT = 1.16; // 2.9
     private final double ANGLE_CONST = 2.08833333;
     private final double MAX_HEIGHT = 1.4;
 
@@ -180,7 +181,7 @@ public class StraferMain extends LinearOpMode{
 
         blockTimer = new ElapsedTime();
         feedTimer = new ElapsedTime();
-        blocker.scaleRange(openPos, feedPos);
+        blocker.scaleRange(feedPos, openPos);
         blocker.setPosition(1);
 
         // The robot waits for the opmode to become active
@@ -272,13 +273,17 @@ public class StraferMain extends LinearOpMode{
                                 // Runs through each apriltag found and checks if it's a target
                                 for (AprilTagDetection tag : detections) {
                                     if (tag.metadata.id == 24) {
-                                        posX = (tag.ftcPose.y + 17) * Math.cos(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 34.63));
-                                        posY = (tag.ftcPose.y + 13) * Math.sin(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 34.63));
+                                        //posX = 144 - Math.abs((tag.ftcPose.y + 17) * Math.cos(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 34.63)));
+                                        //posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 34.63)));
+                                        posX = 144 - Math.abs((tag.ftcPose.y + 17) * Math.cos(Math.toRadians(34.63)));
+                                        posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(34.63)));
                                         foundTag = tag;
                                     }
                                     else if (tag.metadata.id == 20){
-                                        posX = (tag.ftcPose.y + 17) * Math.cos(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 145.37));
-                                        posY = (tag.ftcPose.y + 13) * Math.sin(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 145.37));
+                                        //posX = Math.abs(tag.ftcPose.y + 17) * Math.cos(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 145.37));
+                                        //posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 145.37)));
+                                        posX = Math.abs(tag.ftcPose.y + 17) * Math.cos(Math.toRadians(145.37));
+                                        posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(145.37)));
                                         foundTag = tag;
                                     }
 
@@ -295,7 +300,7 @@ public class StraferMain extends LinearOpMode{
                                     else if (color == 1)
                                         setShootPos(posX, posY, 9, 135);
 
-                                    blocker.setPosition(0);
+                                    blocker.setPosition(1);
                                     blockTimer.reset();
                                     shootPrep = true;
                                 }
@@ -315,7 +320,7 @@ public class StraferMain extends LinearOpMode{
                         }
                         else if (shootReady){
                             feeding = 1;
-                            blocker.setPosition(0);
+                            blocker.setPosition(1);
                             runBelt(0);
                             ls.setPower(0);
                             rs.setPower(0);
@@ -416,9 +421,9 @@ public class StraferMain extends LinearOpMode{
                             elbow.setPower(0);
 
                         if (gamepad1.y)
-                            blocker.setPosition(1);
-                        else
                             blocker.setPosition(0);
+                        else
+                            blocker.setPosition(1);
                 }
 
                 if (gamepad1.dpad_left) {
@@ -440,7 +445,7 @@ public class StraferMain extends LinearOpMode{
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = (distToAngle(dist) - 45) * OVERSHOOT_ANG_MULT;
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
         telemetry.addData("Distance", dist);
@@ -484,11 +489,11 @@ public class StraferMain extends LinearOpMode{
 
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 1){
-            blocker.setPosition(1);
+            blocker.setPosition(0);
             runBelt(0);
         }
-        else if (feedTimer.milliseconds() < feedDur && feeding == -1) {
-            blocker.setPosition(0);
+        else if (feedTimer.milliseconds() < retDur && feeding == -1) {
+            blocker.setPosition(1);
             runBelt(-beltSpeed);
         }
         else {
