@@ -37,8 +37,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 
 @Configurable
-@TeleOp(name = "StraferOpV2")
-public class StraferOpV2 extends LinearOpMode {
+@TeleOp(name = "SoloStraferOp")
+public class SoloStraferOp extends LinearOpMode {
 
     // Motors and Servos
     private DcMotor lb;
@@ -49,7 +49,7 @@ public class StraferOpV2 extends LinearOpMode {
     private DcMotor rs;
     private DcMotor belt;
     private DcMotor elbow;
-    
+
     private CRServo br;
     private CRServo bl;
     private Servo blocker;
@@ -57,7 +57,9 @@ public class StraferOpV2 extends LinearOpMode {
     // Other variables we'll need
     private String shootMode = "Middle";
     private double launchPower;
-    private double speed = 0.5;
+
+    private double speed;
+
 
     // Holds the power of the motor so it doesn't get messed up with the if statement here
     private double powerSetpoint = middlePower;
@@ -70,6 +72,8 @@ public class StraferOpV2 extends LinearOpMode {
     public static double boxPower = 0.40;     // Default power for Box D-Pad Left
 
 
+    private boolean highSpeedMode = false;
+    private boolean halfSpeedMode = false;
 
     // Taking and storing robot pos from auto
 
@@ -88,7 +92,7 @@ public class StraferOpV2 extends LinearOpMode {
         ls = hardwareMap.get(DcMotor.class,"ls");
         belt = hardwareMap.get(DcMotor.class, "belt");
         elbow = hardwareMap.get(DcMotor.class, "elbow");
-        
+
 
         // Zero power behaviors are set for the motors
         rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -114,8 +118,9 @@ public class StraferOpV2 extends LinearOpMode {
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        
-        // Servo naming 
+
+
+        // Servo naming
         blocker = hardwareMap.get(Servo.class, "blocker");
         br = hardwareMap.get(CRServo.class, "br");
         bl = hardwareMap.get(CRServo.class, "bl");
@@ -124,11 +129,11 @@ public class StraferOpV2 extends LinearOpMode {
         blocker.setPosition(0.54);
 
 
-        // Variables needed for pedro and updating position on the field
+        //Variables needed for pedro and updating position on the field
         follower = Constants.createFollower(hardwareMap);
 
         // Starting pos after teleop
-        follower.setStartingPose(new Pose(0,0,0));
+        follower.setStartingPose(new Pose(0, 0, 0));
 
 
 
@@ -145,27 +150,42 @@ public class StraferOpV2 extends LinearOpMode {
             follower.setStartingPose(RobotPoseStorage.currentPose); */
 
 
-                
+
             lb.setPower(gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
             rb.setPower(gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
             lf.setPower(gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
             rf.setPower(gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
-            if (gamepad1.leftBumperWasPressed())
-                speed = .45;
-            else if (gamepad1.rightBumperWasPressed())
+
+
+            if (gamepad1.leftStickButtonWasPressed()) {
+                halfSpeedMode = !halfSpeedMode; // Flips the state && turns off other mode so errors don't occur
+                highSpeedMode = false;
+            }
+
+            if (gamepad1.rightStickButtonWasPressed()) {
+                highSpeedMode = !highSpeedMode; // Flips the state && turns off other mode so errors don't occur
+                halfSpeedMode = false;
+            }
+
+            if (halfSpeedMode) {
+                speed = 0.45;
+                telemetry.addData("Speed of: ", speed);
+            } else if (highSpeedMode) {
                 speed = 1.15;
-            else
+                telemetry.addData("Speed of: ", speed);
+            } else {
                 speed = .6;
+            }
 
 
-            // Funtion for controlling the belt and servo intake stuff 
-            if (gamepad2.b) {
+            // Funtion for controlling the belt and servo intake stuff
+            if (gamepad1.b) {
                 belt.setPower(.5);
                 br.setPower(1);
                 bl.setPower(-1);
-            } else if (gamepad2.x) {
+            } else if (gamepad1.x) {
                 belt.setPower(-.5);
                 br.setPower(-1);
                 bl.setPower(1);
@@ -176,50 +196,52 @@ public class StraferOpV2 extends LinearOpMode {
             }
 
             // Function for new servo Gabe added
-            if (gamepad2.y)
+            if (gamepad1.y)
                 blocker.setPosition(0.1);
             else
                 blocker.setPosition(.54);
-            
+
             // Here is the mode swap chunk thing that will need alot of testing on the field
 
             // When robot is near middle of shooting area
-            if (gamepad2.dpad_up){
+            if (gamepad1.dpad_up){
                 shootMode = "Middle";
                 powerSetpoint = middlePower /*.5*/;
+                elbow.setTargetPosition(712);
+                elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
             // When robot is at the back of the field in the triangle box
             // Power will need to be high here
-            else if (gamepad2.dpad_down){
+            else if (gamepad1.dpad_down){
                 shootMode = "Back";
                 powerSetpoint = backPower /*.75*/;
             }
             // When robot is at the tip of the shooting triangle box thingy
-            else if (gamepad2.dpad_right){
+            else if (gamepad1.dpad_right){
                 shootMode = "Top";
                 powerSetpoint = topPower /*.55*/;
             }
             // When robot is at the bottom of the lebron box thingy
             // Relatively low power here
-            else if (gamepad2.dpad_left){
+            else if (gamepad1.dpad_left){
                 shootMode = "Box";
                 powerSetpoint = boxPower /*.3*/;
             }
 
             // Stuff for controlling the elbow
-            /** ADD SERVO CODE HERE WHEN GABE GETS HIS DESIGN FINISHED */ 
-            if (gamepad2.left_trigger > 0.2){
-                elbow.setPower(0.4);
-            } else if (gamepad2.right_trigger > 0.2){
-                elbow.setPower(-0.4);
+            /** ADD SERVO CODE HERE WHEN GABE GETS HIS DESIGN FINISHED */
+            if (gamepad1.left_trigger > 0.2){
+                elbow.setPower(0.5);
+            } else if (gamepad1.right_trigger > 0.2){
+                elbow.setPower(-0.5);
             } else {
-                elbow.setPower(0); 
+                elbow.setPower(0);
             }
 
 
-            
+
             // Function that turns the motors on and off
-            if (gamepad2.a) {
+            if (gamepad1.a) {
                 // If Y is pressed sets the desired speed
                 launchPower = powerSetpoint;
             } else {
@@ -227,15 +249,15 @@ public class StraferOpV2 extends LinearOpMode {
                 launchPower = 0;
             }
 
-            if (gamepad2.left_bumper) {
+            if (gamepad1.left_bumper) {
                 // intake system sucks in
                 belt.setPower(.5);
-                br.setPower(.5);
-                bl.setPower(-.5);
-            } else if (gamepad2.right_bumper) {
+                br.setPower(1);
+                bl.setPower(-1);
+            } else if (gamepad1.right_bumper) {
                 belt.setPower(-.5);
-                br.setPower(-.5);
-                bl.setPower(.5 );
+                br.setPower(-1);
+                bl.setPower(1);
             } else {
                 belt.setPower(0);
                 br.setPower(0);
@@ -245,9 +267,10 @@ public class StraferOpV2 extends LinearOpMode {
             // Apply's power to motors
             updateLaunchers();
 
-
             // Prints stuff to station
             updatePos();
+
+
 
 
         }
@@ -261,11 +284,12 @@ public class StraferOpV2 extends LinearOpMode {
         follower.update();
 
         telemetry.addData("Motor goal power: ", launchPower);
-        //telemetry.addData("Motor actual power: ", ls.getPower());
+        //telemetry.addData("Motor actual power: ", ls.getCurrentPosition());
         telemetry.addData("Current pose: ", shootMode);
         telemetry.addData("X Position", follower.getPose().getX());
         telemetry.addData("Y Position", follower.getPose().getY());
         telemetry.addData("Heading", follower.getPose().getHeading());
+        telemetry.addData("Elbow pos", elbow.getCurrentPosition());
         telemetry.update();
 
 
@@ -283,7 +307,7 @@ public class StraferOpV2 extends LinearOpMode {
 
     // Heres a bunch of useful telemetry values that will be printed to the driver station
 
-    /** If this doesnt work prolly have to slap this inside the opmode is active loop */
+    /** If this doesn't work prolly have to slap this inside the opmode is active loop */
     /* public void updateValues(){
         // Erm not 100% sure if the telemetry system will like what I do here so if not will be an easy change
         // Gets the battery voltage and prints to driver station
@@ -294,12 +318,12 @@ public class StraferOpV2 extends LinearOpMode {
         }
 
         telemetry.update();
-    } */
+    }
 
 
     // I think im cooking here but it probably wont work :(
-    /** If this doesnt work prolly have to slap this inside the opmode is active loop */
-    /* private double getBatteryVoltage() {
+    // If this doesnt work prolly have to slap this inside the opmode is active loop
+    private double getBatteryVoltage() {
         double result = Double.POSITIVE_INFINITY;
         // hardwareMap.voltageSensor is a collection of all voltage sensors like control hub, expansion hub, ect
         for (VoltageSensor sensor : hardwareMap.voltageSensor) {
