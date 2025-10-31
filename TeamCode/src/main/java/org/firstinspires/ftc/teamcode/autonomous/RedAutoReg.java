@@ -197,7 +197,7 @@ public class RedAutoReg extends OpMode{
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
 
-        setPathState(0);
+        setPathState(-1);
 
         // CAMERA INIT
 

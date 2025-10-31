@@ -90,7 +90,7 @@ public class StraferMain extends LinearOpMode{
     private double elbowSpeed = 0.2;
 
     private double openPos = 0.53;
-    private double feedPos = 0.1;
+    private double feedPos = 0.02;
     private ElapsedTime feedTimer;
     private double feedDur = 300;
     private double retDur = 700;
@@ -98,8 +98,8 @@ public class StraferMain extends LinearOpMode{
 
     // SHOOTING VARS
 
-    private final double OVERSHOOT_VEL_MULT = 1.897;
-    private final double OVERSHOOT_ANG_MULT = 1.16; // 2.9
+    private final double OVERSHOOT_VEL_MULT = 1.767; // 1.897
+    private final double OVERSHOOT_ANG_MULT = 3.25; // 2.9
     private final double ANGLE_CONST = 2.08833333;
     private final double MAX_HEIGHT = 1.4;
 
@@ -107,7 +107,7 @@ public class StraferMain extends LinearOpMode{
     private double shootVel;
     private double shootAngle;
     private double shootPow;
-    private double angAdjSpeed = 0.2;
+    private double angAdjSpeed = 0.1;
     private boolean foundAngle;
 
     private boolean shootPrep;
@@ -299,17 +299,17 @@ public class StraferMain extends LinearOpMode{
                             shootPow = velToPow(shootVel);
                             setElbowTarget(angleToEncoder(shootAngle));
 
-                            if (!foundAngle) {
+                            /*if (!foundAngle) {
                                 List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                                 // Runs through each apriltag found and checks if it's a target
                                 for (AprilTagDetection tag : detections) {
                                     if (tag.metadata.id == 24 || tag.metadata.id == 20) {
-                                        if (Math.toDegrees(tag.ftcPose.yaw) - 180 <= 0 && Math.toDegrees(tag.ftcPose.yaw) > 1) {
+                                        if (Math.toDegrees(tag.ftcPose.yaw) + 180 < 179 && Math.toDegrees(tag.ftcPose.yaw) < -1) {
                                             lb.setPower(angAdjSpeed);
                                             rb.setPower(-angAdjSpeed);
                                             lf.setPower(angAdjSpeed);
                                             rf.setPower(-angAdjSpeed);
-                                        } else if (Math.toDegrees(tag.ftcPose.yaw) - 180 > 0 && Math.toDegrees(tag.ftcPose.yaw) < -1) {
+                                        } else if (Math.toDegrees(tag.ftcPose.yaw) + 180 > 181 && Math.toDegrees(tag.ftcPose.yaw) > 1) {
                                             lb.setPower(-angAdjSpeed);
                                             rb.setPower(angAdjSpeed);
                                             lf.setPower(-angAdjSpeed);
@@ -323,7 +323,7 @@ public class StraferMain extends LinearOpMode{
                                         }
                                     }
                                 }
-                            }
+                            }*/
 
                             if (blockTimer.milliseconds() >= prepTime)
                                 feedLauncher();
@@ -422,21 +422,21 @@ public class StraferMain extends LinearOpMode{
                             shootPow = velToPow(shootVel);
                             setElbowTarget(angleToEncoder(shootAngle));
 
-                            if (!foundAngle) {
+                            /*if (!foundAngle) {
                                 List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                                 // Runs through each apriltag found and checks if it's a target
                                 for (AprilTagDetection tag : detections) {
                                     if (tag.metadata.id == 24 || tag.metadata.id == 20) {
-                                        if (Math.toDegrees(tag.ftcPose.yaw) - 180 <= 0 && Math.toDegrees(tag.ftcPose.yaw) > 1) {
-                                            lb.setPower(angAdjSpeed);
-                                            rb.setPower(-angAdjSpeed);
-                                            lf.setPower(angAdjSpeed);
-                                            rf.setPower(-angAdjSpeed);
-                                        } else if (Math.toDegrees(tag.ftcPose.yaw) - 180 > 0 && Math.toDegrees(tag.ftcPose.yaw) < -1) {
+                                        if (Math.toDegrees(tag.ftcPose.yaw) + 180 < 179 && Math.toDegrees(tag.ftcPose.yaw) < -1) {
                                             lb.setPower(-angAdjSpeed);
                                             rb.setPower(angAdjSpeed);
                                             lf.setPower(-angAdjSpeed);
                                             rf.setPower(angAdjSpeed);
+                                        } else if (Math.toDegrees(tag.ftcPose.yaw) + 180 > 181 && Math.toDegrees(tag.ftcPose.yaw) > 1) {
+                                            lb.setPower(angAdjSpeed);
+                                            rb.setPower(-angAdjSpeed);
+                                            lf.setPower(angAdjSpeed);
+                                            rf.setPower(-angAdjSpeed);
                                         } else {
                                             lb.setPower(0);
                                             rb.setPower(0);
@@ -446,7 +446,7 @@ public class StraferMain extends LinearOpMode{
                                         }
                                     }
                                 }
-                            }
+                            }*/
 
                             if (blockTimer.milliseconds() >= prepTime)
                                 feedLauncher();
@@ -528,7 +528,7 @@ public class StraferMain extends LinearOpMode{
            it's multiplied by 1.3 because the ball will hit the goal first, so using the
            equation, it'll be about 1 meter high (the height of the goal) when it hit our requested distance
          */
-        dist *= 1.3;
+        dist *= 0.0254 * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
         shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
