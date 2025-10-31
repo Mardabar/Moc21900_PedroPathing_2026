@@ -71,10 +71,8 @@ public class StraferMain extends LinearOpMode{
     private VisionPortal visPort;
     private AprilTagProcessor apTag;
     private AprilTagDetection foundTag;
-    private double posX;
-    private double posY;
-
-    private Follower robotPos;
+    //private double posX;
+    //private double posY;
 
     // SPEED AND POSITIONS
 
@@ -94,8 +92,8 @@ public class StraferMain extends LinearOpMode{
     private double openPos = 0.53;
     private double feedPos = 0.1;
     private ElapsedTime feedTimer;
-    private double feedDur = 400;
-    private double retDur = 800;
+    private double feedDur = 300;
+    private double retDur = 700;
     private int feeding = 1; // Positive is feeding; negative is not feeding
 
     // SHOOTING VARS
@@ -105,11 +103,14 @@ public class StraferMain extends LinearOpMode{
     private final double ANGLE_CONST = 2.08833333;
     private final double MAX_HEIGHT = 1.4;
 
+    private double tagDist;
     private double shootVel;
     private double shootAngle;
     private double shootPow;
+
     private boolean shootPrep;
     private boolean shootReady;
+    private double prepTime = 1600;
 
 
     // OTHER VARS
@@ -171,9 +172,6 @@ public class StraferMain extends LinearOpMode{
                 .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
                 .addProcessor(apTag)
                 .build();
-
-        robotPos = Constants.createFollower(hardwareMap);
-        robotPos.setStartingPose(new Pose(0,0,0));
 
         speed = mainSpeed;
         shootReady = false;
@@ -254,9 +252,9 @@ public class StraferMain extends LinearOpMode{
                         rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * lStickPosX + speed * lStickPosY);
 
                         // Changes the current speed of the robot
-                        if (gamepad1.left_bumper)
+                        if (gamepad1.left_trigger > 0.2)
                             speed = mainSpeed * slowMult;
-                        else if (gamepad1.right_bumper)
+                        else if (gamepad1.right_trigger > 0.2)
                             speed = mainSpeed * fastMult;
                         else
                             speed = mainSpeed;
@@ -272,34 +270,15 @@ public class StraferMain extends LinearOpMode{
                                 List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                                 // Runs through each apriltag found and checks if it's a target
                                 for (AprilTagDetection tag : detections) {
-                                    if (tag.metadata.id == 24) {
-                                        //posX = 144 - Math.abs((tag.ftcPose.y + 17) * Math.cos(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 34.63)));
-                                        //posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 34.63)));
-                                        posX = 144 - Math.abs((tag.ftcPose.y + 17) * Math.cos(Math.toRadians(34.63)));
-                                        posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(34.63)));
+                                    if (tag.metadata.id == 24 || tag.metadata.id == 20) {
+                                        tagDist = tag.ftcPose.y;
                                         foundTag = tag;
                                     }
-                                    else if (tag.metadata.id == 20){
-                                        //posX = Math.abs(tag.ftcPose.y + 17) * Math.cos(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 145.37));
-                                        //posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(Math.toDegrees(tag.ftcPose.yaw) + 145.37)));
-                                        posX = Math.abs(tag.ftcPose.y + 17) * Math.cos(Math.toRadians(145.37));
-                                        posY = 144 - Math.abs((tag.ftcPose.y + 13) * Math.sin(Math.toRadians(145.37)));
-                                        foundTag = tag;
-                                    }
-
-                                    // Adds telemetry to the console specifying the coords of the robot and name of the april tag
-                                    telemetry.addData("Tag Name", tag.metadata.name);
-                                    telemetry.addData("Robot Coordinates",
-                                            "(" + posX + ", " + posY + ")");
                                 }
 
                                 // Checks if the correct april tag was found before the shooting position gets set
                                 if (foundTag != null) {
-                                    if (color == 0)
-                                        setShootPos(posX, posY, 135, 135);
-                                    else if (color == 1)
-                                        setShootPos(posX, posY, 9, 135);
-
+                                    setShootPos(tagDist);
                                     blocker.setPosition(1);
                                     blockTimer.reset();
                                     shootPrep = true;
@@ -312,7 +291,7 @@ public class StraferMain extends LinearOpMode{
                             shootPow = velToPow(shootVel);
                             setElbowTarget(angleToEncoder(shootAngle));
 
-                            if (blockTimer.milliseconds() >= 3000)
+                            if (blockTimer.milliseconds() >= prepTime)
                                 feedLauncher();
 
                             ls.setPower(shootPow);
@@ -339,45 +318,86 @@ public class StraferMain extends LinearOpMode{
 
                         // MAIN DRIVER CONTROLS
 
-                        lb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        // This block allows the movement to snap in one direction if the driver seems to want to go in just one direction
+                        if (Math.abs(gamepad1.left_stick_y) < snapPos && Math.abs(gamepad1.left_stick_x) > snapPos) {
+                            lStickPosX = gamepad1.left_stick_x;
+                            lStickPosY = 0;
+                        }
+                        else if (Math.abs(gamepad1.left_stick_y) > snapPos && Math.abs(gamepad1.left_stick_x) < snapPos) {
+                            lStickPosY = gamepad1.left_stick_y;
+                            lStickPosX = 0;
+                        }
+                        else if (Math.abs(gamepad1.left_stick_y) < snapPos * 3 && Math.abs(gamepad1.left_stick_x) < snapPos * 3) {
+                            lStickPosY = 0;
+                            lStickPosX = 0;
+                        }
+                        else {
+                            lStickPosY = gamepad1.left_stick_y;
+                            lStickPosX = gamepad1.left_stick_x;
+                        }
 
-                        lf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * -gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+                        // The main strafer movement of the robot, changed for the first time in years
+                        lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * lStickPosX + speed * lStickPosY);
+                        rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * lStickPosX + speed * lStickPosY);
 
-                        if (gamepad1.left_bumper)
+                        lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * lStickPosX + speed * lStickPosY);
+                        rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * lStickPosX + speed * lStickPosY);
+
+                        // Changes the current speed of the robot
+                        if (gamepad1.left_trigger > 0.2)
                             speed = mainSpeed * slowMult;
-                        else if (gamepad1.right_bumper)
+                        else if (gamepad1.right_trigger > 0.2)
                             speed = mainSpeed * fastMult;
                         else
                             speed = mainSpeed;
 
-                        if (gamepad1.left_trigger > 0.2){
-                            belt.setPower(beltSpeed);
-                            //blocker.setPosition(1);
-                        }
-                        else if (gamepad1.right_trigger > 0.2){
-                            belt.setPower(-beltSpeed);
-                            //blocker.setPosition(1);
-                        }
-                        else if (gamepad1.a && !shootPrep && !shootReady){
-                            setShootPos(0, 0, 0, 0);
-                            //blocker.setPosition(0);
-                            shootPrep = true;
-                        }
-                        else{
-                            belt.setPower(0);
-                            //blocker.setPosition(0);
+                        // ACCESSORY DRIVER CONTROLS
+
+                        if (!shootReady) {
+                            if (gamepad1.x)
+                                runBelt(beltSpeed);
+                            else if (gamepad1.b)
+                                runBelt(-beltSpeed);
+                            else if (gamepad1.a && !shootPrep) {
+                                List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
+                                // Runs through each apriltag found and checks if it's a target
+                                for (AprilTagDetection tag : detections) {
+                                    if (tag.metadata.id == 24 || tag.metadata.id == 20) {
+                                        tagDist = tag.ftcPose.y;
+                                        foundTag = tag;
+                                    }
+                                }
+
+                                // Checks if the correct april tag was found before the shooting position gets set
+                                if (foundTag != null) {
+                                    setShootPos(tagDist);
+                                    blocker.setPosition(1);
+                                    blockTimer.reset();
+                                    shootPrep = true;
+                                }
+                            } else
+                                runBelt(0);
                         }
 
                         if (gamepad1.a && shootReady){
                             shootPow = velToPow(shootVel);
+                            setElbowTarget(angleToEncoder(shootAngle));
+
+                            if (blockTimer.milliseconds() >= prepTime)
+                                feedLauncher();
 
                             ls.setPower(shootPow);
                             rs.setPower(shootPow);
                         }
-                        else
+                        else if (shootReady){
+                            feeding = 1;
+                            blocker.setPosition(1);
+                            runBelt(0);
+                            ls.setPower(0);
+                            rs.setPower(0);
+                            shootPrep = false;
                             shootReady = false;
+                        }
 
                         break;
 
@@ -436,13 +456,12 @@ public class StraferMain extends LinearOpMode{
     // ACCESSORY METHODS
 
     // This method sets the speed of the shooter motors and the angle of the shooting position
-    private void setShootPos(double ix, double iy, double fx, double fy){
+    private void setShootPos(double dist){
         /* dist is the total distance the ball will travel until it hits the ground
-           It's divided by 40 to turn the field units into meters
-           Then, it's multiplied by 1.3 because the ball will hit the goal first, so using the
+           it's multiplied by 1.3 because the ball will hit the goal first, so using the
            equation, it'll be about 1 meter high (the height of the goal) when it hit our requested distance
          */
-        double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
+        dist *= 1.3;
 
         // The angle and velocity are both calculated using the distance we found
         shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
