@@ -20,14 +20,15 @@ public class Constants {
             .forwardZeroPowerAcceleration(-39.25)
             .lateralZeroPowerAcceleration(-79.51)
             .mass(9.07)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.07, 0.00001, 0.01, 0));
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.07, 0.00001, 0.01, 0))
+            .headingPIDFCoefficients(new PIDFCoefficients(1.15,0.001,0.03,0.01));
 
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             // Check issue with either wheels or wiring of motors because drive code is not working atm
             .maxPower(1)
-            .xVelocity(63.228)
-            .yVelocity(53.399)
+            .xVelocity(64.4630)
+            .yVelocity(52.4704)
 
             .rightFrontMotorName("rf")
             .rightRearMotorName("rb")
