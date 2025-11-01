@@ -93,7 +93,7 @@ public class StraferMain extends LinearOpMode{
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
     private double feedDur = 300;
-    private double retDur = 700;
+    private double retDur = 900;
     private int feeding = 1; // Positive is feeding; negative is not feeding
 
     // SHOOTING VARS
@@ -338,6 +338,7 @@ public class StraferMain extends LinearOpMode{
                             ls.setPower(0);
                             rs.setPower(0);
 
+                            foundTag = null;
                             foundAngle = false;
                             shootPrep = false;
                             shootReady = false;
@@ -461,6 +462,7 @@ public class StraferMain extends LinearOpMode{
                             ls.setPower(0);
                             rs.setPower(0);
 
+                            foundTag = null;
                             foundAngle = false;
                             shootPrep = false;
                             shootReady = false;

@@ -21,8 +21,8 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@Autonomous(name = "CloseAutoV1", group = "autonomous")
-public class CloseAutoV1 extends OpMode {
+@Autonomous(name = "CloseAutoRed", group = "autonomous")
+public class CloseAutoRed extends OpMode {
 
     // Variables needed for pedro, a bunch is copy paste from last year
     private Follower follower;
@@ -43,9 +43,9 @@ public class CloseAutoV1 extends OpMode {
     private final int PPG_ID = 23;
 
     // Positions
-    private final Pose startPose = new Pose(21,122.5, Math.toRadians(144)); // Starting position
-    private final Pose shootPose = new Pose(58,91,Math.toRadians(144)); // Shooting position
-    private final Pose parkPose = new Pose(47,70,Math.toRadians(144));
+    private final Pose startPose = new Pose(123,122.5, Math.toRadians(36)); // Starting position
+    private final Pose shootPose = new Pose(86,91,Math.toRadians(36)); // Shooting position
+    private final Pose parkPose = new Pose(97,70,Math.toRadians(36));
 
 
 

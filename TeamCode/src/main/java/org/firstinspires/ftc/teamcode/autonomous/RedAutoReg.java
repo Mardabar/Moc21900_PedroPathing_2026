@@ -137,7 +137,7 @@ public class RedAutoReg extends OpMode{
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
     private double feedDur = 300;
-    private double retDur = 700;
+    private double retDur = 900;
     private int feeding = 1;
 
     // PATH CHAINS
@@ -425,11 +425,15 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21PreScore);
                         setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        timerCount++;
+                    }
+
+                    if (!fol.isBusy() && timerCount == 0){
                         shoot();
                         timerCount++;
                     }
 
-                    if (shootTimerCount == 2){
+                    if (!fol.isBusy() && shootTimerCount == 2 && timerCount == 1){
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(0);
@@ -456,11 +460,15 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score1);
                         runBelt(0);
+                        timerCount++;
+                    }
+
+                    if (!fol.isBusy() && timerCount == 0){
                         shoot();
                         timerCount++;
                     }
 
-                    if (shootTimerCount == 2){
+                    if (!fol.isBusy() && shootTimerCount == 2 && timerCount == 1){
                         shootTimerCount = -1;
                         timerCount = -1;
                         setPathState(3);
@@ -829,13 +837,13 @@ public class RedAutoReg extends OpMode{
         if (shootTimerCount == -1)
             shootTimerCount = 0;
 
-        while (shootTimer.milliseconds() < 2000 && shootTimerCount == 0){
+        while (shootTimer.milliseconds() < 1600 && shootTimerCount == 0){
             ls.setPower(velToPow(shootVel));
             rs.setPower(velToPow(shootVel));
         }
         shootTimer.reset();
         shootTimerCount = 1;
-        while (shootTimer.milliseconds() < 3000 && shootTimerCount == 1){
+        while (shootTimer.milliseconds() < 3600 && shootTimerCount == 1){
             feedLauncher();
         }
         shootTimerCount = 2;
