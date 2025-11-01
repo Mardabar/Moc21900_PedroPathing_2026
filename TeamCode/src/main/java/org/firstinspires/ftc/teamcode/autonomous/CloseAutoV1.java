@@ -66,15 +66,19 @@ public class CloseAutoV1 extends OpMode {
     private Servo blocker;
     private double openPos = 0.1;
     private double blockPos = 0.3;
-    private ElapsedTime timer;
+
     private double dur;
     private int timerCount = -1;
 
+    private ElapsedTime timer;
     private ElapsedTime shootTimer;
     private ElapsedTime feedTimer;
     private int shootTimerCount = -1;
-    private double feedDur = 400;
-    private double retDur = 800;
+    private double feedDur = 700;
+    private double retDur = 1000;
+    private double gapDur = 500;
+    private double beltDur = 500;
+    private double blockerDur = 300;
     private int feeding = 1;
 
     private ElapsedTime elbowTimer;
@@ -106,62 +110,17 @@ public class CloseAutoV1 extends OpMode {
         elbow.setPower(power);
     }
 
-    /**
-     * Checks if the time for the time-based move has elapsed.
-     * @return True if the duration is over, false otherwise.
-     */
+
     public boolean isElbowTimeMoveFinished() {
         return elbowTimer.milliseconds() >= dur;
     }
 
-    /**
-     * Stops the elbow motor after a time-based move.
-     */
+
     public void stopElbowTimeMove() {
         elbow.setPower(0);
     }
 
-    // Motor moving stuff
-    private void shoot(){
-        shootTimer.reset();
-        if (shootTimerCount == -1)
-            shootTimerCount = 0;
 
-        while (shootTimer.milliseconds() < 2000 && shootTimerCount == 0){
-            ls.setPower(.47);
-            rs.setPower(.47);
-        }
-        shootTimer.reset();
-        shootTimerCount = 1;
-        while (shootTimer.milliseconds() < 3000 && shootTimerCount == 1){
-            feedLauncher();
-        }
-        shootTimerCount = 2;
-
-        ls.setPower(0);
-        rs.setPower(0);
-        blocker.setPosition(0);
-    }
-
-    private void runBelt(double speed){
-        belt.setPower(speed);
-        br.setPower(speed);
-        bl.setPower(-speed);
-    }
-    private void feedLauncher(){
-        if (feedTimer.milliseconds() < feedDur && feeding == 1){
-            blocker.setPosition(1);
-            runBelt(0);
-        }
-        else if (feedTimer.milliseconds() < retDur && feeding == -1) {
-            blocker.setPosition(0);
-            runBelt(-beltSpeed);
-        }
-        else {
-            feeding *= -1;
-            feedTimer.reset();
-        }
-    }
 
     public int getElbowPos() {
         elbowPos = elbow.getCurrentPosition();
@@ -189,6 +148,8 @@ public class CloseAutoV1 extends OpMode {
         bl = hardwareMap.get(CRServo.class, "bl");
         br = hardwareMap.get(CRServo.class, "br");
         blocker = hardwareMap.get(Servo.class, "blocker");
+        blocker.scaleRange(0.0, 1.0);
+        blocker.setPosition(0.54);
 
         ls.setDirection(DcMotorSimple.Direction.FORWARD);
         rs.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -198,10 +159,8 @@ public class CloseAutoV1 extends OpMode {
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        blocker.scaleRange(openPos, blockPos);
 
         // Also have to set timer here
-        // Will add more stuff later but base timer is good
         timer = new ElapsedTime();
         shootTimer = new ElapsedTime();
         feedTimer = new ElapsedTime();
@@ -245,51 +204,30 @@ public class CloseAutoV1 extends OpMode {
         switch (pathState) {
             case 0:
                 if (!follower.isBusy() && timerCount == -1) {
-                    follower.followPath(pathShootPose);
+                    //follower.followPath(pathShootPose);
                     setElbowTargetPosition(1180, 0.6);
-//
-//                    dur = 500;
-//                    timer.reset();
-//
-//                  setElbowTarget(712);
-                      setPathState(1);
+                    shootTimerCount = 3;
                 }
 
-//                if (timer.milliseconds() >= dur && timerCount == -1){
-//                    timerCount = 0;
-//                }
-
-//                if (!follower.isBusy() && timerCount == 0){
-//                    dur = 600;
-//                    timerCount = -1;
-//                    setPathState(1);
-//                }
-
+                if (shootTimerCount == 3){
+                    shootTimerCount = -1;
+                    timerCount = -1;
+                    shoot();
+                    setPathState(1);
+                }
                 break;
 
             case 1:
 //                if (!follower.isBusy() && timerCount == -1){
 //                    follower.followPath(pathParkPose);
 //                }
+                break;
         }
     }
 
-
-    private void setPathState(int num){
-        pathState = num;
-        pathTimer.resetTimer();
-    }
-
-    private void intakeSystem(double power){
-        belt.setPower(power);
-        br.setPower(power);
-        bl.setPower(-power);
-    }
-
+    /*** Prints stuff to drive station */
     public void updatePos(){
         //follower.update();
-
-        // Get the position of the robot and print to station
 
         telemetry.addData("X Position", follower.getPose().getX());
         telemetry.addData("Y Position", follower.getPose().getY());
@@ -299,13 +237,100 @@ public class CloseAutoV1 extends OpMode {
         telemetry.update();
     }
 
+
+    // Displays PathState
+    private void setPathState(int num){
+        pathState = num;
+        pathTimer.resetTimer();
+    }
+
+    // Motor moving stuff
+    private void shoot(){
+        shootTimer.reset();
+        if (shootTimerCount == -1)
+            shootTimerCount = 0;
+
+        while (shootTimer.milliseconds() < 2000 && shootTimerCount == 0){
+            ls.setPower(.47);
+            rs.setPower(.47);
+        }
+        shootTimer.reset();
+        shootTimerCount = 1;
+        // 7800 should be about 3 cycles
+        while (shootTimer.milliseconds() < 7800 && shootTimerCount == 1){
+            feedLauncher();
+        }
+        shootTimerCount = 2;
+
+        ls.setPower(0);
+        rs.setPower(0);
+        blocker.setPosition(0);
+        runBelt(0);
+    }
+
+    // Intake system
+    private void feedLauncher(){
+        // 1st state launch 1st ball
+        if (feeding == 1) {
+            if (feedTimer.milliseconds() < feedDur) {
+                blocker.setPosition(1);
+                runBelt(0);
+            } else {
+                feeding = 2;
+                feedTimer.reset();
+            }
+        }
+
+        // 2nd state uhhh load ball w belt
+        else if (feeding == 2) {
+            if (feedTimer.milliseconds() < retDur) {
+                blocker.setPosition(.54);
+                runBelt(-beltSpeed);
+            } else {
+                feeding = 3;
+                feedTimer.reset();
+            }
+        }
+
+        // 3rd state advance ig, moves intake stuff while servo is down
+        // Honestly might be able to combine these two at some point
+        else if (feeding == 3) {
+            if (feedTimer.milliseconds() < beltDur) {
+                blocker.setPosition(.54);
+                runBelt(-beltSpeed);
+            } else {
+                feeding = 4;
+                feedTimer.reset();
+            }
+        }
+        else if (feeding == 4) {
+            // Now servo moves up once ball is in the position,
+            // Very slow rn but once we get wtv is wrong with the servos solved itll be good
+            if (feedTimer.milliseconds() < blockerDur){
+                blocker.setPosition(.01);
+                runBelt(0);
+            } else {
+                feeding = 1;
+                feedTimer.reset();
+            }
+        }
+    }
+
+    private void runBelt(double speed){
+        belt.setPower(speed);
+        br.setPower(speed);
+        bl.setPower(-speed);
+    }
+
+
+
     @Override
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
-        }
+    }
     /** We do not use this because everything should automatically disable **/
     @Override
     public void stop() {
-        }
+    }
 }
