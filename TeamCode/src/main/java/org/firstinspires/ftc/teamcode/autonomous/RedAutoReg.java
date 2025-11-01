@@ -60,7 +60,7 @@ public class RedAutoReg extends OpMode{
 
     // POSITIONS
 
-    private final Pose startPose = new Pose(56, 8, Math.toRadians(90)); // STARTING POSITION
+    private final Pose startPose = new Pose(56, 9, Math.toRadians(90)); // STARTING POSITION
     private final Pose preScorePose = new Pose(56, 16, Math.toRadians(56)); // PRE-LOAD SCORING POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
@@ -119,8 +119,8 @@ public class RedAutoReg extends OpMode{
     private DcMotor belt;
     private DcMotor elbow;
 
-    private final double OVERSHOOT_VEL_MULT = 1.5;
-    private final double OVERSHOOT_ANG_MULT = 1.2;
+    private final double OVERSHOOT_VEL_MULT = 1.767;
+    private final double OVERSHOOT_ANG_MULT = 3.25;
     private final double ANGLE_CONST = 2.08833333;
     private final double MAX_HEIGHT = 1.4;
 
@@ -133,11 +133,11 @@ public class RedAutoReg extends OpMode{
     private double beltSpeed = 1;
 
     private Servo blocker;
-    private double openPos = 0.1;
-    private double blockPos = 0.3;
+    private double openPos = 0.53;
+    private double feedPos = 0.02;
     private ElapsedTime feedTimer;
-    private double feedDur = 400;
-    private double retDur = 800;
+    private double feedDur = 300;
+    private double retDur = 700;
     private int feeding = 1;
 
     // PATH CHAINS
@@ -185,7 +185,7 @@ public class RedAutoReg extends OpMode{
         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setPower(elbowSpeed);
 
-        blocker.scaleRange(openPos, blockPos);
+        blocker.scaleRange(feedPos, openPos);
         blocker.setPosition(1);
 
         // TIMER INIT
@@ -769,7 +769,7 @@ public class RedAutoReg extends OpMode{
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = (distToAngle(dist) - 45) * OVERSHOOT_ANG_MULT;
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
         telemetry.addData("Distance", dist);
@@ -835,11 +835,11 @@ public class RedAutoReg extends OpMode{
 
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 1){
-            blocker.setPosition(1);
+            blocker.setPosition(0);
             runBelt(0);
         }
         else if (feedTimer.milliseconds() < retDur && feeding == -1) {
-            blocker.setPosition(0);
+            blocker.setPosition(1);
             runBelt(-beltSpeed);
         }
         else {
