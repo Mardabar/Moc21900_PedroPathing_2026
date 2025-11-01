@@ -440,6 +440,7 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Grab1GP1);
                         setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        runBelt(-beltSpeed);
                         setPathState(1);
                     }
                     break;
@@ -454,6 +455,7 @@ public class RedAutoReg extends OpMode{
                 case 2:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score1);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -467,6 +469,7 @@ public class RedAutoReg extends OpMode{
                 case 3:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Grab1G2);
+                        runBelt(-beltSpeed);
                         setPathState(4);
                     }
                     break;
@@ -479,6 +482,7 @@ public class RedAutoReg extends OpMode{
                 case 5:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score2);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -499,12 +503,14 @@ public class RedAutoReg extends OpMode{
                 case 7:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21GrabGPP3);
+                        runBelt(-beltSpeed);
                         setPathState(8);
                     }
                     break;
                 case 8:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb21Score3);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -550,6 +556,7 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Grab1P1);
                         setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 135, 135);
+                        runBelt(-beltSpeed);
                         setPathState(1);
                     }
                     break;
@@ -564,6 +571,7 @@ public class RedAutoReg extends OpMode{
                 case 2:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Score1);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -577,6 +585,7 @@ public class RedAutoReg extends OpMode{
                 case 3:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Grab1PG2);
+                        runBelt(-beltSpeed);
                         setPathState(4);
                     }
                     break;
@@ -589,6 +598,7 @@ public class RedAutoReg extends OpMode{
                 case 5:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Score2);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -609,12 +619,14 @@ public class RedAutoReg extends OpMode{
                 case 7:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22GrabPGP3);
+                        runBelt(-beltSpeed);
                         setPathState(8);
                     }
                     break;
                 case 8:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Score3);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -660,6 +672,7 @@ public class RedAutoReg extends OpMode{
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Grab1PP1);
                         setShootPos(Ob23Score1.getX(), Ob23Score1.getY(), 135, 135);
+                        runBelt(-beltSpeed);
                         setPathState(1);
                     }
                     break;
@@ -674,6 +687,7 @@ public class RedAutoReg extends OpMode{
                 case 2:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Score1);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -687,6 +701,7 @@ public class RedAutoReg extends OpMode{
                 case 3:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Grab1P2);
+                        runBelt(-beltSpeed);
                         setPathState(4);
                     }
                     break;
@@ -699,6 +714,7 @@ public class RedAutoReg extends OpMode{
                 case 5:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Score2);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
@@ -718,12 +734,14 @@ public class RedAutoReg extends OpMode{
                 case 7:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23GrabPPG3);
+                        runBelt(-beltSpeed);
                         setPathState(8);
                     }
                     break;
                 case 8:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Score3);
+                        runBelt(0);
                         shoot();
                         timerCount++;
                     }
