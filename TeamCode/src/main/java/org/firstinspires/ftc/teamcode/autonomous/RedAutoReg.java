@@ -61,7 +61,7 @@ public class RedAutoReg extends OpMode{
     // POSITIONS
 
     private final Pose startPose = new Pose(56, 9, Math.toRadians(90)); // STARTING POSITION
-    private final Pose preScorePose = new Pose(56, 16, Math.toRadians(56)); // PRE-LOAD SCORING POSITION
+    private final Pose preScorePose = new Pose(56, 16, Math.toRadians(115)); // PRE-LOAD SCORING POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
         // Obelisk #21 --------------------------------------------------
@@ -69,7 +69,7 @@ public class RedAutoReg extends OpMode{
     private final Pose Ob21Grab1GP1CP = new Pose(70, 45, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2P1 = new Pose(36, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab2P1CP = new Pose(61, 59.8, Math.toRadians(0)); // CONTROL POINT
-    private final Pose Ob21Score1 = new Pose(61, 76.5, Math.toRadians(42)); // POSITION
+    private final Pose Ob21Score1 = new Pose(61, 76.5, Math.toRadians(130)); // POSITION
     private final Pose Ob21Grab1G2 = new Pose(31, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab1G2CP = new Pose(59, 59.8, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2PP2 = new Pose(31, 84, Math.toRadians(0)); // POSITION
@@ -78,15 +78,15 @@ public class RedAutoReg extends OpMode{
     private final Pose Ob21Grab3 = new Pose(19, 98, Math.toRadians(90)); // POSITION
     private final Pose Ob21Grab3CP = new Pose(60, 98, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21GrabGPP3 = new Pose(19, 42, Math.toRadians(90)); // POSITION
-    private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(56)); // POSITION
+    private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
         // Obelisk #22 --------------------------------------------------
     private final Pose Ob22Grab1P1 = new Pose(36, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab1P1CP = new Pose(70, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob22Grab2GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab2GP1CP = new Pose(56, 35.5, Math.toRadians(0)); // CONTROL POINT
-    private final Pose Ob22Score1 = new Pose(61, 76.5, Math.toRadians(42)); // POSITION
-    private final Pose Ob22Score1CP = new Pose(60, 50, Math.toRadians(42)); // CONTROL POINT
+    private final Pose Ob22Score1 = new Pose(61, 76.5, Math.toRadians(130)); // POSITION
+    private final Pose Ob22Score1CP = new Pose(60, 50, Math.toRadians(130)); // CONTROL POINT
     private final Pose Ob22Grab1PG2 = new Pose(26, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab1PG2CP = new Pose(60, 88, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob22Grab2P2 = new Pose(26, 35.5, Math.toRadians(0)); // POSITION
@@ -95,14 +95,14 @@ public class RedAutoReg extends OpMode{
     private final Pose Ob22Grab3 = new Pose(45, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab3CP = new Pose(62, 62, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob22GrabPGP3 = new Pose(26, 59.8, Math.toRadians(0)); // POSITION
-    private final Pose Ob22Score3 = new Pose(61, 18, Math.toRadians(56)); // POSITION
+    private final Pose Ob22Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
         // Obelisk #23 --------------------------------------------------
     private final Pose Ob23Grab1PP1 = new Pose(31, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob23Grab1PP1CP = new Pose(68, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob23Grab2G1 = new Pose(36, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob23Grab2G1CP = new Pose(70, 45, Math.toRadians(0)); // CONTROL POINT
-    private final Pose Ob23Score1 = new Pose(61, 18, Math.toRadians(56)); // POSITION
+    private final Pose Ob23Score1 = new Pose(61, 18, Math.toRadians(115)); // POSITION
     private final Pose Ob23Grab1P2 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob23Grab1P2CP = new Pose(60, 44, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob23Grab2PG2 = new Pose(31, 59.8, Math.toRadians(0)); // POSITION
@@ -422,26 +422,22 @@ public class RedAutoReg extends OpMode{
         else if (chainNum == 21 && tagFound) {
             switch (pathState) {
                 case -1:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy() && shootTimerCount == -1){
                         fol.followPath(pathOb21PreScore);
                         setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
-                        timerCount++;
                     }
 
-                    if (!fol.isBusy() && timerCount == 0){
+                    if (shootTimerCount != 2)
                         shoot();
-                        timerCount++;
-                    }
 
-                    if (!fol.isBusy() && shootTimerCount == 2 && timerCount == 1){
+                    if (!fol.isBusy() && shootTimerCount == 2){
                         shootTimerCount = -1;
-                        timerCount = -1;
                         setPathState(0);
                     }
                     break;
 
                 case 0:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21Grab1GP1);
                         setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
                         runBelt(-beltSpeed);
@@ -450,87 +446,90 @@ public class RedAutoReg extends OpMode{
                     break;
 
                 case 1:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21Grab2P1);
                         setPathState(2);
                     }
                     break;
 
                 case 2:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy() && shootTimerCount == -1){
                         fol.followPath(pathOb21Score1);
                         runBelt(0);
-                        timerCount++;
                     }
 
-                    if (!fol.isBusy() && timerCount == 0){
+                    if (!fol.isBusy() && shootTimerCount != 2)
                         shoot();
-                        timerCount++;
-                    }
 
-                    if (!fol.isBusy() && shootTimerCount == 2 && timerCount == 1){
+                    if (!fol.isBusy() && shootTimerCount == 2){
                         shootTimerCount = -1;
-                        timerCount = -1;
                         setPathState(3);
                     }
                     break;
+
                 case 3:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21Grab1G2);
                         runBelt(-beltSpeed);
                         setPathState(4);
                     }
                     break;
+
                 case 4:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21Grab2PP2);
                         setPathState(5);
                     }
                     break;
+
                 case 5:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy() && shootTimerCount == -1){
                         fol.followPath(pathOb21Score2);
                         runBelt(0);
-                        shoot();
-                        timerCount++;
                     }
 
-                    if (shootTimerCount == 2){
+                    if (shootTimerCount != 2)
+                        shoot();
+
+                    if (!fol.isBusy() && shootTimerCount == 2){
                         shootTimerCount = -1;
-                        timerCount = -1;
                         setPathState(6);
                     }
                     break;
+
                 case 6:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21Grab3);
                         setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 135, 135);
                         setPathState(7);
                     }
                     break;
+
                 case 7:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21GrabGPP3);
                         runBelt(-beltSpeed);
                         setPathState(8);
                     }
                     break;
+
                 case 8:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy() && shootTimerCount == -1){
                         fol.followPath(pathOb21Score3);
                         runBelt(0);
-                        shoot();
-                        timerCount++;
                     }
 
-                    if (shootTimerCount == 2){
+                    if (shootTimerCount != 2)
+                        shoot();
+
+                    if (!fol.isBusy() && shootTimerCount == 2){
                         shootTimerCount = -1;
-                        timerCount = -1;
                         setPathState(9);
                     }
                     break;
+
                 case 9:
-                    if (!fol.isBusy() && timerCount == -1){
+                    if (!fol.isBusy()){
                         fol.followPath(pathOb21Park);
                         setPathState(10);
                     }
@@ -833,24 +832,31 @@ public class RedAutoReg extends OpMode{
     }
 
     private void shoot(){
-        shootTimer.reset();
-        if (shootTimerCount == -1)
+        if (shootTimerCount == -1) {
+            shootTimer.reset();
             shootTimerCount = 0;
+        }
 
-        while (shootTimer.milliseconds() < 1600 && shootTimerCount == 0){
+        if (shootTimer.milliseconds() < 1600 && shootTimerCount == 0){
             ls.setPower(velToPow(shootVel));
             rs.setPower(velToPow(shootVel));
         }
-        shootTimer.reset();
-        shootTimerCount = 1;
-        while (shootTimer.milliseconds() < 3600 && shootTimerCount == 1){
+        else if (shootTimerCount == 0){
+            shootTimer.reset();
+            shootTimerCount = 1;
+        }
+
+        if (shootTimer.milliseconds() < (feedDur + retDur) * 3 && shootTimerCount == 1){
             feedLauncher();
         }
-        shootTimerCount = 2;
+        else if (shootTimerCount == 1)
+            shootTimerCount = 2;
 
-        ls.setPower(0);
-        rs.setPower(0);
-        blocker.setPosition(0);
+        if (shootTimerCount == 2){
+            ls.setPower(0);
+            rs.setPower(0);
+            blocker.setPosition(0);
+        }
     }
 
     private void runBelt(double speed){
