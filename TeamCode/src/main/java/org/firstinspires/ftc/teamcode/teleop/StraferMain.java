@@ -15,6 +15,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.ArrayList;
@@ -51,10 +52,10 @@ public class StraferMain extends LinearOpMode{
     private DcMotor rb;
     private DcMotor lf;
     private DcMotor rf;
-    private DcMotor ls;
-    private DcMotor rs;
+    private DcMotorEx ls;
+    private DcMotorEx rs;
     private DcMotor belt;
-    private DcMotor elbow;
+    private DcMotorEx elbow;
 
     private Servo blocker;
     private CRServo br;
@@ -87,7 +88,7 @@ public class StraferMain extends LinearOpMode{
     private double snapPos = 0.1;
 
     private double beltSpeed = 1;
-    private double elbowSpeed = 0.2;
+    private double elbowSpeed = 0.7;
 
     private double openPos = 0.53;
     private double feedPos = 0.02;
@@ -98,15 +99,16 @@ public class StraferMain extends LinearOpMode{
 
     // SHOOTING VARS
 
-    private final double OVERSHOOT_VEL_MULT = 1.767; // 1.897
-    private final double OVERSHOOT_ANG_MULT = 3.25; // 2.9
+    private final double OVERSHOOT_VEL_MULT = 1.767;
+    private final double OVERSHOOT_ANG_MULT = 1; // 3.25
     private final double ANGLE_CONST = 2.08833333;
+    private final int ELBOW_GEAR_RATIO = 28;
     private final double MAX_HEIGHT = 1.4;
 
     private double tagDist;
     private double shootVel;
     private double shootAngle;
-    private double shootPow;
+    private double shootRot;
     private double angAdjSpeed = 0.1;
     private boolean foundAngle;
 
@@ -128,10 +130,10 @@ public class StraferMain extends LinearOpMode{
         rb = hardwareMap.get(DcMotor.class, "rb");
         lf = hardwareMap.get(DcMotor.class, "lf");
         rf = hardwareMap.get(DcMotor.class, "rf");
-        ls = hardwareMap.get(DcMotor.class, "ls");
-        rs = hardwareMap.get(DcMotor.class, "rs");
+        ls = hardwareMap.get(DcMotorEx.class, "ls");
+        rs = hardwareMap.get(DcMotorEx.class, "rs");
         belt = hardwareMap.get(DcMotor.class, "belt");
-        elbow = hardwareMap.get(DcMotor.class, "elbow");
+        elbow = hardwareMap.get(DcMotorEx.class, "elbow");
 
         // Zero power behaviors are set for the motors
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -148,15 +150,18 @@ public class StraferMain extends LinearOpMode{
         rb.setDirection(DcMotor.Direction.FORWARD);
         lf.setDirection(DcMotor.Direction.REVERSE);
         rf.setDirection(DcMotor.Direction.FORWARD);
-        ls.setDirection(DcMotor.Direction.FORWARD);
-        rs.setDirection(DcMotor.Direction.REVERSE);
+        ls.setDirection(DcMotorEx.Direction.FORWARD);
+        rs.setDirection(DcMotorEx.Direction.REVERSE);
         belt.setDirection(DcMotor.Direction.FORWARD);
-        elbow.setDirection(DcMotor.Direction.REVERSE);
+        elbow.setDirection(DcMotorEx.Direction.REVERSE);
 
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         //elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         setElbowTarget(0);
         elbow.setPower(elbowSpeed);
+
+        ls.setMotorDisable();
+        rs.setMotorDisable();
 
         blocker = hardwareMap.get(Servo.class, "blocker");
         br = hardwareMap.get(CRServo.class, "br");
@@ -175,6 +180,12 @@ public class StraferMain extends LinearOpMode{
                 .addProcessor(apTag)
                 .build();
 
+        // Odometry
+
+
+
+        // Other Vars
+
         speed = mainSpeed;
         shootReady = false;
         shootPrep = false;
@@ -191,6 +202,8 @@ public class StraferMain extends LinearOpMode{
                 // This is where the mode is selected and only runs when there is no mode selected
                 if (gamepad1.dpad_down){
                     if (robotMode == 3){
+                        ls.setMotorDisable();
+                        rs.setMotorDisable();
                         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         setElbowTarget(0);
@@ -201,6 +214,8 @@ public class StraferMain extends LinearOpMode{
                 }
                 else if (gamepad1.dpad_right){
                     if (robotMode == 3){
+                        ls.setMotorDisable();
+                        rs.setMotorDisable();
                         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         setElbowTarget(0);
@@ -211,6 +226,8 @@ public class StraferMain extends LinearOpMode{
                 }
                 else if (gamepad1.dpad_up){
                     if (robotMode == 3){
+                        ls.setMotorDisable();
+                        rs.setMotorDisable();
                         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                         elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         setElbowTarget(0);
@@ -221,6 +238,8 @@ public class StraferMain extends LinearOpMode{
                 }
                 else if (gamepad1.right_stick_button){
                     robotMode = 3;
+                    ls.setMotorEnable();
+                    rs.setMotorEnable();
                     elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     elbow.setPower(0);
                     modeSelected = true;
@@ -284,10 +303,8 @@ public class StraferMain extends LinearOpMode{
                                     blocker.setPosition(1);
                                     blockTimer.reset();
 
-                                    lb.setPower(0);
-                                    rb.setPower(0);
-                                    lf.setPower(0);
-                                    rf.setPower(0);
+                                    ls.setMotorEnable();
+                                    rs.setMotorEnable();
 
                                     shootPrep = true;
                                 }
@@ -296,7 +313,7 @@ public class StraferMain extends LinearOpMode{
                         }
 
                         if (gamepad2.a && shootReady){
-                            shootPow = velToPow(shootVel);
+                            shootRot = velToRot(shootVel);
                             setElbowTarget(angleToEncoder(shootAngle));
 
                             /*if (!foundAngle) {
@@ -328,15 +345,17 @@ public class StraferMain extends LinearOpMode{
                             if (blockTimer.milliseconds() >= prepTime)
                                 feedLauncher();
 
-                            ls.setPower(shootPow);
-                            rs.setPower(shootPow);
+                            ls.setVelocity(shootRot, AngleUnit.DEGREES);
+                            rs.setVelocity(shootRot, AngleUnit.DEGREES);
                         }
                         else if (shootReady){
                             feeding = 1;
                             blocker.setPosition(1);
                             runBelt(0);
-                            ls.setPower(0);
-                            rs.setPower(0);
+                            ls.setVelocity(0);
+                            rs.setVelocity(0);
+                            ls.setMotorDisable();
+                            ls.setMotorDisable();
 
                             foundTag = null;
                             foundAngle = false;
@@ -408,10 +427,8 @@ public class StraferMain extends LinearOpMode{
                                     blocker.setPosition(1);
                                     blockTimer.reset();
 
-                                    lb.setPower(0);
-                                    rb.setPower(0);
-                                    lf.setPower(0);
-                                    rf.setPower(0);
+                                    ls.setMotorEnable();
+                                    rs.setMotorEnable();
 
                                     shootPrep = true;
                                 }
@@ -420,7 +437,7 @@ public class StraferMain extends LinearOpMode{
                         }
 
                         if (gamepad1.a && shootReady){
-                            shootPow = velToPow(shootVel);
+                            shootRot = velToRot(shootVel);
                             setElbowTarget(angleToEncoder(shootAngle));
 
                             /*if (!foundAngle) {
@@ -452,15 +469,17 @@ public class StraferMain extends LinearOpMode{
                             if (blockTimer.milliseconds() >= prepTime)
                                 feedLauncher();
 
-                            ls.setPower(shootPow);
-                            rs.setPower(shootPow);
+                            ls.setVelocity(shootRot, AngleUnit.DEGREES);
+                            rs.setVelocity(shootRot, AngleUnit.DEGREES);
                         }
                         else if (shootReady){
                             feeding = 1;
                             blocker.setPosition(1);
                             runBelt(0);
-                            ls.setPower(0);
-                            rs.setPower(0);
+                            ls.setVelocity(0);
+                            rs.setVelocity(0);
+                            ls.setMotorDisable();
+                            rs.setMotorDisable();
 
                             foundTag = null;
                             foundAngle = false;
@@ -555,13 +574,14 @@ public class StraferMain extends LinearOpMode{
     }
 
     // This function translates velocity to motor power specifically for 6000 RPM motors combined with 72 mm Gecko Wheels
-    private double velToPow(double vel){
-        return vel / (7.2 * Math.PI);
+    private double velToRot(double vel){
+        //return vel / (7.2 * Math.PI);
+        return ((1000 * vel) / 72) * 360;
     }
 
     // This function translates an angle in degrees to an encoder value on 223 RPM motors
     private double angleToEncoder(double angle){
-        return angle * ANGLE_CONST;
+        return angle * ANGLE_CONST * ELBOW_GEAR_RATIO;
     }
 
     private void setElbowTarget(double angle){
