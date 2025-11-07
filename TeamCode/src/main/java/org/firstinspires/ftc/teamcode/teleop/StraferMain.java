@@ -63,8 +63,8 @@ public class StraferMain extends LinearOpMode{
 
     // CAMERA
 
-    //private Limelight3A cam;
-    //private LLResult camPic;
+    private Limelight3A cam;
+    private LLResult camPic;
 
     //private OpenCvCamera cam;
     //private Mat camFrame;
@@ -110,6 +110,7 @@ public class StraferMain extends LinearOpMode{
     private double shootAngle;
     private double shootRot;
     private double angAdjSpeed = 0.1;
+    private double adjAngle;
     private boolean foundAngle;
 
     private boolean shootPrep;
@@ -121,6 +122,7 @@ public class StraferMain extends LinearOpMode{
 
     private ElapsedTime blockTimer;
     private int robotMode = 0;
+    private int color = 0;
     private boolean modeSelected = false;
 
     @Override
@@ -169,6 +171,9 @@ public class StraferMain extends LinearOpMode{
 
         // Camera
 
+        cam = hardwareMap.get(Limelight3A.class, "limelight");
+        cam.pipelineSwitch(0);
+
         apTag = new AprilTagProcessor.Builder()
                 .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
                         new YawPitchRollAngles(AngleUnit.DEGREES, 0, 14, 0, 0))
@@ -195,10 +200,16 @@ public class StraferMain extends LinearOpMode{
         blocker.scaleRange(feedPos, openPos);
         blocker.setPosition(1);
 
+        cam.start();
+
         // The robot waits for the opmode to become active
         waitForStart();
         while (opModeIsActive()){
             if (!modeSelected){
+                if (gamepad1.left_stick_button)
+                    color = 1;
+                else
+                    color = 0;
                 // This is where the mode is selected and only runs when there is no mode selected
                 if (gamepad1.dpad_down){
                     if (robotMode == 3){
@@ -412,7 +423,25 @@ public class StraferMain extends LinearOpMode{
                             else if (gamepad1.b)
                                 runBelt(-beltSpeed);
                             else if (gamepad1.a && !shootPrep) {
-                                List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
+                                camPic = cam.getLatestResult();
+                                if (camPic != null){
+                                    double angle = camPic.getBotpose().getOrientation().getPitch();
+                                    double dist = -camPic.getBotpose().getPosition().z * 39.37; // Conversion from meters to inches
+
+                                    tagDist = dist * Math.cos(Math.toRadians(angle));
+                                    adjAngle = camPic.getTx();
+
+                                    setShootPos(tagDist);
+                                    blocker.setPosition(1);
+                                    blockTimer.reset();
+
+                                    ls.setMotorEnable();
+                                    rs.setMotorEnable();
+
+                                    shootPrep = true;
+                                }
+
+                                /*List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                                 // Runs through each apriltag found and checks if it's a target
                                 for (AprilTagDetection tag : detections) {
                                     if (tag.metadata.id == 24 || tag.metadata.id == 20) {
@@ -431,7 +460,7 @@ public class StraferMain extends LinearOpMode{
                                     rs.setMotorEnable();
 
                                     shootPrep = true;
-                                }
+                                }*/
                             } else
                                 runBelt(0);
                         }
@@ -480,8 +509,9 @@ public class StraferMain extends LinearOpMode{
                             rs.setPower(0);
                             ls.setMotorDisable();
                             rs.setMotorDisable();
+                            adjAngle = 0;
 
-                            foundTag = null;
+                            //foundTag = null;
                             foundAngle = false;
                             shootPrep = false;
                             shootReady = false;
@@ -555,7 +585,7 @@ public class StraferMain extends LinearOpMode{
         shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
-        telemetry.addData("Distance", dist);
+        telemetry.addData("Distance", dist / 1.3);
         telemetry.addData("Angle", distToAngle(dist) * OVERSHOOT_ANG_MULT);
         telemetry.addData("Velocity", shootVel);
         telemetry.update();
