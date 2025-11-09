@@ -80,52 +80,8 @@ public class CloseAutoRed extends OpMode {
     private double beltDur = 500;
     private double blockerDur = 300;
     private int feeding = 1;
-
-    private ElapsedTime elbowTimer;
-    private int elbowTargetPosition;
-
-    double elbowPos = 0;
     double beltSpeed = 1;
 
-    public void setElbowTargetPosition(int targetPosition, double power) {
-        // Stop and reset the encoder if necessary, then set to RUN_TO_POSITION
-        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        elbow.setTargetPosition(targetPosition);
-        elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        elbow.setPower(power);
-    }
-
-    public boolean isElbowMoveFinished() {
-        return !elbow.isBusy();
-    }
-
-    public void startElbowTimeMove(double power, long duration) {
-        elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-        dur = duration;
-        elbowTimer.reset();
-
-        // Start the motor
-        elbow.setPower(power);
-    }
-
-
-    public boolean isElbowTimeMoveFinished() {
-        return elbowTimer.milliseconds() >= dur;
-    }
-
-
-    public void stopElbowTimeMove() {
-        elbow.setPower(0);
-    }
-
-
-
-    public int getElbowPos() {
-        elbowPos = elbow.getCurrentPosition();
-        return elbow.getCurrentPosition();
-    }
 
 
     // Path chains for the path...
@@ -144,6 +100,7 @@ public class CloseAutoRed extends OpMode {
         rs = hardwareMap.get(DcMotor.class, "rs");
         belt = hardwareMap.get(DcMotor.class, "belt");
         elbow = hardwareMap.get(DcMotor.class, "elbow");
+        elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         bl = hardwareMap.get(CRServo.class, "bl");
         br = hardwareMap.get(CRServo.class, "br");
@@ -155,9 +112,7 @@ public class CloseAutoRed extends OpMode {
         rs.setDirection(DcMotorSimple.Direction.REVERSE);
         belt.setDirection(DcMotorSimple.Direction.FORWARD);
         elbow.setDirection(DcMotor.Direction.REVERSE);
-
-        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elbow.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         // Also have to set timer here
@@ -191,12 +146,12 @@ public class CloseAutoRed extends OpMode {
         // Moving from start pose to park
         pathShootPose = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, shootPose))
-                .setConstantHeadingInterpolation(Math.toRadians(144))
+                .setConstantHeadingInterpolation(Math.toRadians(36))
                 .build();
 
         pathParkPose = follower.pathBuilder()
                 .addPath(new BezierLine(shootPose, parkPose))
-                .setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(90))
+                .setConstantHeadingInterpolation(Math.toRadians(36))
                 .build();
     }
 
@@ -205,9 +160,13 @@ public class CloseAutoRed extends OpMode {
             case 0:
                 if (!follower.isBusy() && timerCount == -1) {
                     follower.followPath(pathShootPose);
-                    setElbowTargetPosition(1180, 0.6);
                     shootTimerCount = 3;
                 }
+
+                // Very important, wait till the motor is done moving then moves on in code
+//                if (timerCount == 3 && !follower.isBusy()){
+//                    timerCount = 4;
+//                }
 
                 if (!follower.isBusy() && shootTimerCount == 3){
                     shootTimerCount = -1;

@@ -63,7 +63,7 @@ public class StraferMain extends LinearOpMode{
 
     // CAMERA
 
-    //private Limelight3A cam;
+    private Limelight3A cam;
     //private LLResult camPic;
 
     //private OpenCvCamera cam;

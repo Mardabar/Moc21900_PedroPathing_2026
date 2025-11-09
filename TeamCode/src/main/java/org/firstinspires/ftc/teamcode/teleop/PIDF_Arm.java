@@ -15,9 +15,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 
-@Disabled
 @Configurable
 @TeleOp
 public class PIDF_Arm extends OpMode {
@@ -43,6 +43,9 @@ public class PIDF_Arm extends OpMode {
     telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
     elbow = hardwareMap.get(DcMotor.class, "elbow");
+
+    elbow.setDirection(DcMotor.Direction.REVERSE);
+
   }
 
 
