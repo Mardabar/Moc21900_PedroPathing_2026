@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 
 import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -105,12 +106,15 @@ public class StraferMain extends LinearOpMode{
     private final int ELBOW_GEAR_RATIO = 4;
     private final double MAX_HEIGHT = 1.4;
 
+    private final double p = 1.15, i = 0.001, d = 0.03;
+    private double lastError;
+    private double iSum;
+
     private double tagDist;
     private double shootVel;
     private double shootAngle;
     private double shootRot;
-    private double angAdjSpeed = 0.1;
-    private double adjAngle;
+    private double angAdjSpeed = 1;
     private boolean foundAngle;
 
     private boolean shootPrep;
@@ -171,10 +175,10 @@ public class StraferMain extends LinearOpMode{
 
         // Camera
 
-        cam = hardwareMap.get(Limelight3A.class, "limelight");
-        cam.pipelineSwitch(0);
+        //cam = hardwareMap.get(Limelight3A.class, "limelight");
+        //cam.pipelineSwitch(0);
 
-        apTag = new AprilTagProcessor.Builder()
+        /*apTag = new AprilTagProcessor.Builder()
                 .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
                         new YawPitchRollAngles(AngleUnit.DEGREES, 0, 14, 0, 0))
                 .build();
@@ -183,7 +187,7 @@ public class StraferMain extends LinearOpMode{
         visPort = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
                 .addProcessor(apTag)
-                .build();
+                .build();*/
 
         // Odometry
 
@@ -200,7 +204,7 @@ public class StraferMain extends LinearOpMode{
         blocker.scaleRange(feedPos, openPos);
         blocker.setPosition(1);
 
-        cam.start();
+        //cam.start();
 
         // The robot waits for the opmode to become active
         waitForStart();
@@ -425,20 +429,24 @@ public class StraferMain extends LinearOpMode{
                             else if (gamepad1.a && !shootPrep) {
                                 camPic = cam.getLatestResult();
                                 if (camPic != null){
-                                    double angle = camPic.getBotpose().getOrientation().getPitch();
-                                    double dist = -camPic.getBotpose().getPosition().z * 39.37; // Conversion from meters to inches
+                                    List<LLResultTypes.DetectorResult> detections = camPic.getDetectorResults();
+                                    for (LLResultTypes.DetectorResult res : detections) {
+                                        if (res.hashCode() == 20 || res.hashCode() == 24) {
+                                            double angle = camPic.getBotpose().getOrientation().getPitch();
+                                            double dist = -camPic.getBotpose().getPosition().z * 39.37; // Conversion from meters to inches
+                                            tagDist = dist * Math.cos(Math.toRadians(angle));
 
-                                    tagDist = dist * Math.cos(Math.toRadians(angle));
-                                    adjAngle = camPic.getTx();
+                                            setShootPos(tagDist);
+                                            blocker.setPosition(1);
+                                            blockTimer.reset();
 
-                                    setShootPos(tagDist);
-                                    blocker.setPosition(1);
-                                    blockTimer.reset();
+                                            ls.setMotorEnable();
+                                            rs.setMotorEnable();
 
-                                    ls.setMotorEnable();
-                                    rs.setMotorEnable();
-
-                                    shootPrep = true;
+                                            iSum = 0;
+                                            shootPrep = true;
+                                        }
+                                    }
                                 }
 
                                 /*List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
@@ -469,31 +477,17 @@ public class StraferMain extends LinearOpMode{
                             shootRot = velToRot(shootVel);
                             setElbowTarget(angleToEncoder(shootAngle));
 
-                            /*if (!foundAngle) {
-                                List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
-                                // Runs through each apriltag found and checks if it's a target
-                                for (AprilTagDetection tag : detections) {
-                                    if (tag.metadata.id == 24 || tag.metadata.id == 20) {
-                                        if (Math.toDegrees(tag.ftcPose.yaw) + 180 < 179 && Math.toDegrees(tag.ftcPose.yaw) < -1) {
-                                            lb.setPower(-angAdjSpeed);
-                                            rb.setPower(angAdjSpeed);
-                                            lf.setPower(-angAdjSpeed);
-                                            rf.setPower(angAdjSpeed);
-                                        } else if (Math.toDegrees(tag.ftcPose.yaw) + 180 > 181 && Math.toDegrees(tag.ftcPose.yaw) > 1) {
-                                            lb.setPower(angAdjSpeed);
-                                            rb.setPower(-angAdjSpeed);
-                                            lf.setPower(angAdjSpeed);
-                                            rf.setPower(-angAdjSpeed);
-                                        } else {
-                                            lb.setPower(0);
-                                            rb.setPower(0);
-                                            lf.setPower(0);
-                                            rf.setPower(0);
-                                            foundAngle = true;
-                                        }
-                                    }
-                                }
-                            }*/
+                            camPic = cam.getLatestResult();
+                            double error = camPic.getTx();
+                            iSum += error;
+                            double derError = lastError - error;
+
+                            lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
+                            rb.setPower((error * p) + (iSum * i) + (derError * d));
+                            lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
+                            rf.setPower((error * p) + (iSum * i) + (derError * d));
+
+                            lastError = error;
 
                             if (blockTimer.milliseconds() >= prepTime)
                                 feedLauncher();
@@ -509,10 +503,8 @@ public class StraferMain extends LinearOpMode{
                             rs.setPower(0);
                             ls.setMotorDisable();
                             rs.setMotorDisable();
-                            adjAngle = 0;
 
                             //foundTag = null;
-                            foundAngle = false;
                             shootPrep = false;
                             shootReady = false;
                         }
