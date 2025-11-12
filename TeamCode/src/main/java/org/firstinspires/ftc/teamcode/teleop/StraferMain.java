@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+//import edu.wpi.first.networktables.NetworkTable;
+//import edu.wpi.first.networktables.NetworkTableInstance;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierCurve;
@@ -175,8 +178,8 @@ public class StraferMain extends LinearOpMode{
 
         // Camera
 
-        //cam = hardwareMap.get(Limelight3A.class, "limelight");
-        //cam.pipelineSwitch(0);
+        cam = hardwareMap.get(Limelight3A.class, "limelight");
+        cam.pipelineSwitch(0);
 
         /*apTag = new AprilTagProcessor.Builder()
                 .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
@@ -204,7 +207,7 @@ public class StraferMain extends LinearOpMode{
         blocker.scaleRange(feedPos, openPos);
         blocker.setPosition(1);
 
-        //cam.start();
+        cam.start();
 
         // The robot waits for the opmode to become active
         waitForStart();
@@ -303,7 +306,10 @@ public class StraferMain extends LinearOpMode{
                             else if (gamepad2.left_bumper)
                                 runBelt(-beltSpeed);
                             else if (gamepad2.a && !shootPrep) {
-                                List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
+                                camPic = cam.getLatestResult();
+                                initShooting(camPic);
+
+                                /*List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                                 // Runs through each apriltag found and checks if it's a target
                                 for (AprilTagDetection tag : detections) {
                                     if (tag.metadata.id == 24 || tag.metadata.id == 20) {
@@ -322,60 +328,16 @@ public class StraferMain extends LinearOpMode{
                                     rs.setMotorEnable();
 
                                     shootPrep = true;
-                                }
+                                }*/
                             } else
                                 runBelt(0);
                         }
 
                         if (gamepad2.a && shootReady){
-                            shootRot = velToRot(shootVel);
-                            setElbowTarget(angleToEncoder(shootAngle));
-
-                            /*if (!foundAngle) {
-                                List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
-                                // Runs through each apriltag found and checks if it's a target
-                                for (AprilTagDetection tag : detections) {
-                                    if (tag.metadata.id == 24 || tag.metadata.id == 20) {
-                                        if (Math.toDegrees(tag.ftcPose.yaw) + 180 < 179 && Math.toDegrees(tag.ftcPose.yaw) < -1) {
-                                            lb.setPower(angAdjSpeed);
-                                            rb.setPower(-angAdjSpeed);
-                                            lf.setPower(angAdjSpeed);
-                                            rf.setPower(-angAdjSpeed);
-                                        } else if (Math.toDegrees(tag.ftcPose.yaw) + 180 > 181 && Math.toDegrees(tag.ftcPose.yaw) > 1) {
-                                            lb.setPower(-angAdjSpeed);
-                                            rb.setPower(angAdjSpeed);
-                                            lf.setPower(-angAdjSpeed);
-                                            rf.setPower(angAdjSpeed);
-                                        } else {
-                                            lb.setPower(0);
-                                            rb.setPower(0);
-                                            lf.setPower(0);
-                                            rf.setPower(0);
-                                            foundAngle = true;
-                                        }
-                                    }
-                                }
-                            }*/
-
-                            if (blockTimer.milliseconds() >= prepTime)
-                                feedLauncher();
-
-                            ls.setVelocity(shootRot, AngleUnit.DEGREES);
-                            rs.setVelocity(shootRot, AngleUnit.DEGREES);
+                            shoot();
                         }
                         else if (shootReady){
-                            feeding = 1;
-                            blocker.setPosition(1);
-                            runBelt(0);
-                            ls.setVelocity(0);
-                            rs.setVelocity(0);
-                            ls.setMotorDisable();
-                            ls.setMotorDisable();
-
-                            foundTag = null;
-                            foundAngle = false;
-                            shootPrep = false;
-                            shootReady = false;
+                            resetBack();
                         }
 
                         break;
@@ -428,86 +390,15 @@ public class StraferMain extends LinearOpMode{
                                 runBelt(-beltSpeed);
                             else if (gamepad1.a && !shootPrep) {
                                 camPic = cam.getLatestResult();
-                                if (camPic != null){
-                                    List<LLResultTypes.DetectorResult> detections = camPic.getDetectorResults();
-                                    for (LLResultTypes.DetectorResult res : detections) {
-                                        if (res.hashCode() == 20 || res.hashCode() == 24) {
-                                            double angle = camPic.getBotpose().getOrientation().getPitch();
-                                            double dist = -camPic.getBotpose().getPosition().z * 39.37; // Conversion from meters to inches
-                                            tagDist = dist * Math.cos(Math.toRadians(angle));
-
-                                            setShootPos(tagDist);
-                                            blocker.setPosition(1);
-                                            blockTimer.reset();
-
-                                            ls.setMotorEnable();
-                                            rs.setMotorEnable();
-
-                                            iSum = 0;
-                                            shootPrep = true;
-                                        }
-                                    }
-                                }
-
-                                /*List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
-                                // Runs through each apriltag found and checks if it's a target
-                                for (AprilTagDetection tag : detections) {
-                                    if (tag.metadata.id == 24 || tag.metadata.id == 20) {
-                                        tagDist = tag.ftcPose.y;
-                                        foundTag = tag;
-                                    }
-                                }
-
-                                // Checks if the correct april tag was found before the shooting position gets set
-                                if (foundTag != null) {
-                                    setShootPos(tagDist);
-                                    blocker.setPosition(1);
-                                    blockTimer.reset();
-
-                                    ls.setMotorEnable();
-                                    rs.setMotorEnable();
-
-                                    shootPrep = true;
-                                }*/
+                                initShooting(camPic);
                             } else
                                 runBelt(0);
                         }
 
-                        if (gamepad1.a && shootReady){
-                            shootRot = velToRot(shootVel);
-                            setElbowTarget(angleToEncoder(shootAngle));
-
-                            camPic = cam.getLatestResult();
-                            double error = camPic.getTx();
-                            iSum += error;
-                            double derError = lastError - error;
-
-                            lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
-                            rb.setPower((error * p) + (iSum * i) + (derError * d));
-                            lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
-                            rf.setPower((error * p) + (iSum * i) + (derError * d));
-
-                            lastError = error;
-
-                            if (blockTimer.milliseconds() >= prepTime)
-                                feedLauncher();
-
-                            ls.setPower(shootRot);
-                            rs.setPower(shootRot);
-                        }
-                        else if (shootReady){
-                            feeding = 1;
-                            blocker.setPosition(1);
-                            runBelt(0);
-                            ls.setPower(0);
-                            rs.setPower(0);
-                            ls.setMotorDisable();
-                            rs.setMotorDisable();
-
-                            //foundTag = null;
-                            shootPrep = false;
-                            shootReady = false;
-                        }
+                        if (gamepad1.a && shootReady)
+                            shoot();
+                        else if (shootReady)
+                            resetBack();
 
                         break;
 
@@ -564,6 +455,66 @@ public class StraferMain extends LinearOpMode{
     }
 
     // ACCESSORY METHODS
+
+    private void initShooting(LLResult pic){
+        if (pic != null){
+            //double id = NetworkTableInstance.get
+            double id = -1;
+            if (id == 20 || id == 24) {
+                double angle = 19 + pic.getTy();
+                double tagDist = (Math.cos(Math.toRadians(angle)) /
+                        Math.sin(Math.toRadians(angle))) * 39.37; // Conversion from meters to inches
+
+                setShootPos(tagDist);
+                blocker.setPosition(1);
+                blockTimer.reset();
+
+                ls.setMotorEnable();
+                rs.setMotorEnable();
+
+                iSum = 0;
+                shootPrep = true;
+            }
+        }
+    }
+
+    private void shoot(){
+        shootRot = velToRot(shootVel);
+        setElbowTarget(angleToEncoder(shootAngle));
+
+        // This section uses PID to control the angle the robot is facing towards the april tag
+        camPic = cam.getLatestResult();
+        double error = camPic.getTx();
+        iSum += error;
+        double derError = lastError - error;
+
+        lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
+        rb.setPower((error * p) + (iSum * i) + (derError * d));
+        lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
+        rf.setPower((error * p) + (iSum * i) + (derError * d));
+
+        lastError = error;
+
+        if (blockTimer.milliseconds() >= prepTime)
+            feedLauncher();
+
+        ls.setPower(shootRot);
+        rs.setPower(shootRot);
+    }
+
+    private void resetBack(){
+        feeding = 1;
+        blocker.setPosition(1);
+        runBelt(0);
+        ls.setPower(0);
+        rs.setPower(0);
+        ls.setMotorDisable();
+        rs.setMotorDisable();
+
+        //foundTag = null;
+        shootPrep = false;
+        shootReady = false;
+    }
 
     // This method sets the speed of the shooter motors and the angle of the shooting position
     private void setShootPos(double dist){

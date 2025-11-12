@@ -120,8 +120,9 @@ public class RedAutoReg extends OpMode{
     private DcMotor elbow;
 
     private final double OVERSHOOT_VEL_MULT = 1.767;
-    private final double OVERSHOOT_ANG_MULT = 3.25;
+    private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
+    private final int ELBOW_GEAR_RATIO = 4;
     private final double MAX_HEIGHT = 1.4;
 
     private double shootVel;
@@ -804,7 +805,7 @@ public class RedAutoReg extends OpMode{
         telemetry.addData("Real Velocity", angleToVel(distToAngle(dist)));
         telemetry.update();
 
-        setElbowTarget(angleToEncoder(shootAngle));
+        //setElbowTarget(angleToEncoder(shootAngle));
     }
 
     private double distToAngle(double dist){
@@ -823,7 +824,7 @@ public class RedAutoReg extends OpMode{
 
     // This function translates an angle in degrees to an encoder value on 223 RPM motors
     private double angleToEncoder(double angle){
-        return angle * ANGLE_CONST;
+        return angle * ANGLE_CONST * ELBOW_GEAR_RATIO;
     }
 
     private void setElbowTarget(double angle){
