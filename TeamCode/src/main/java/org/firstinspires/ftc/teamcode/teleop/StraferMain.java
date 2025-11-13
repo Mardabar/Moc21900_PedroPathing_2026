@@ -1,26 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-//import edu.wpi.first.networktables.NetworkTable;
-//import edu.wpi.first.networktables.NetworkTableInstance;
-
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
-import android.graphics.Camera;
-import android.graphics.Canvas;
-
-import com.arcrobotics.ftclib.util.Timing;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,23 +15,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp(name = "StraferMain")
 public class StraferMain extends LinearOpMode{
@@ -109,7 +80,7 @@ public class StraferMain extends LinearOpMode{
     private final int ELBOW_GEAR_RATIO = 4;
     private final double MAX_HEIGHT = 1.4;
 
-    private final double p = 1.15, i = 0.001, d = 0.03;
+    private final double p = 0.018, i = 0.00001, d = 0.00011;
     private double lastError;
     private double iSum;
 
@@ -286,11 +257,11 @@ public class StraferMain extends LinearOpMode{
                             }
 
                             // The main strafer movement of the robot, changed for the first time in years
-                            lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * lStickPosX + speed * lStickPosY);
-                            rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * lStickPosX + speed * lStickPosY);
+                            lb.setPower((turnMult * gamepad1.right_stick_x * -speed) + (speed * lStickPosX) + (speed * lStickPosY));
+                            rb.setPower((turnMult * gamepad1.right_stick_x * speed) + (-speed * lStickPosX) + (speed * lStickPosY));
 
-                            lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * lStickPosX + speed * lStickPosY);
-                            rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * lStickPosX + speed * lStickPosY);
+                            lf.setPower((turnMult * gamepad1.right_stick_x * -speed) + (-speed * lStickPosX) + (speed * lStickPosY));
+                            rf.setPower((turnMult * gamepad1.right_stick_x * speed) + (speed * lStickPosX) + (speed * lStickPosY));
 
                             // Changes the current speed of the robot
                             if (gamepad1.left_trigger > 0.2)
@@ -307,7 +278,8 @@ public class StraferMain extends LinearOpMode{
                                 runBelt(-beltSpeed);
                             else if (gamepad2.a && !shootPrep) {
                                 camPic = cam.getLatestResult();
-                                initShooting(camPic);
+                                if (camPic.isValid())
+                                    initShooting(camPic);
 
                                 /*List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
                                 // Runs through each apriltag found and checks if it's a target
@@ -368,11 +340,11 @@ public class StraferMain extends LinearOpMode{
                             }
 
                             // The main strafer movement of the robot, changed for the first time in years
-                            lb.setPower(turnMult * gamepad1.right_stick_x * -speed + speed * lStickPosX + speed * lStickPosY);
-                            rb.setPower(turnMult * gamepad1.right_stick_x * speed + -speed * lStickPosX + speed * lStickPosY);
+                            lb.setPower((turnMult * gamepad1.right_stick_x * -speed) + (speed * lStickPosX) + (speed * lStickPosY));
+                            rb.setPower((turnMult * gamepad1.right_stick_x * speed) + (-speed * lStickPosX) + (speed * lStickPosY));
 
-                            lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * lStickPosX + speed * lStickPosY);
-                            rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * lStickPosX + speed * lStickPosY);
+                            lf.setPower((turnMult * gamepad1.right_stick_x * -speed) + (-speed * lStickPosX) + (speed * lStickPosY));
+                            rf.setPower((turnMult * gamepad1.right_stick_x * speed) + (speed * lStickPosX) + (speed * lStickPosY));
 
                             // Changes the current speed of the robot
                             if (gamepad1.left_trigger > 0.2)
@@ -390,7 +362,8 @@ public class StraferMain extends LinearOpMode{
                                 runBelt(-beltSpeed);
                             else if (gamepad1.a && !shootPrep) {
                                 camPic = cam.getLatestResult();
-                                initShooting(camPic);
+                                if (camPic.isValid())
+                                    initShooting(camPic);
                             } else
                                 runBelt(0);
                         }
@@ -409,13 +382,6 @@ public class StraferMain extends LinearOpMode{
                         lf.setPower(turnMult * gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
                         rf.setPower(turnMult * gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
 
-                        if (gamepad1.left_bumper)
-                            speed = mainSpeed * slowMult;
-                        else if (gamepad1.right_bumper)
-                            speed = mainSpeed * fastMult;
-                        else
-                            speed = mainSpeed;
-
                         if (gamepad1.b){
                             runBelt(beltSpeed);
                         }
@@ -425,26 +391,31 @@ public class StraferMain extends LinearOpMode{
                         else
                             runBelt(0);
 
-                        if (gamepad1.a){
-                            ls.setPower(0.45);
-                            rs.setPower(0.45);
-                        }
-                        else{
-                            ls.setPower(0);
-                            rs.setPower(0);
-                        }
+                        ls.setPower(gamepad1.left_trigger);
+                        rs.setPower(gamepad1.right_trigger);
+                        telemetry.addData("Flywheel Speed", "ls: " + Math.round(ls.getPower()) +
+                                "    rs: " + Math.round(rs.getPower()));
 
-                        if (gamepad1.left_trigger > 0.2)
-                            elbow.setPower(elbowSpeed);
-                        else if (gamepad1.right_trigger > 0.2)
-                            elbow.setPower(-elbowSpeed);
-                        else
+                        if (gamepad1.left_bumper) {
+                            elbow.setPower(0.3);
+                        }
+                        else if (gamepad1.right_bumper) {
+                            elbow.setPower(-0.3);
+                        }
+                        else {
                             elbow.setPower(0);
+                        }
+                        telemetry.addData("Elbow Position", elbow.getCurrentPosition());
 
-                        if (gamepad1.y)
+                        if (gamepad1.y) {
                             blocker.setPosition(0);
-                        else
+                        }
+                        else {
                             blocker.setPosition(1);
+                        }
+
+                        telemetry.update();
+                        break;
                 }
 
                 if (gamepad1.dpad_left) {
@@ -457,13 +428,11 @@ public class StraferMain extends LinearOpMode{
     // ACCESSORY METHODS
 
     private void initShooting(LLResult pic){
-        if (pic != null){
-            //double id = NetworkTableInstance.get
-            double id = -1;
+        for (LLResultTypes.FiducialResult res : pic.getFiducialResults()) {
+            int id = res.getFiducialId();
             if (id == 20 || id == 24) {
-                double angle = 19 + pic.getTy();
-                double tagDist = (Math.cos(Math.toRadians(angle)) /
-                        Math.sin(Math.toRadians(angle))) * 39.37; // Conversion from meters to inches
+                double angle = 25.2 + res.getTargetYDegrees();
+                double tagDist = (0.646 / Math.tan(Math.toRadians(angle)));
 
                 setShootPos(tagDist);
                 blocker.setPosition(1);
@@ -484,16 +453,21 @@ public class StraferMain extends LinearOpMode{
 
         // This section uses PID to control the angle the robot is facing towards the april tag
         camPic = cam.getLatestResult();
-        double error = camPic.getTx();
-        iSum += error;
-        double derError = lastError - error;
+        for (LLResultTypes.FiducialResult res : camPic.getFiducialResults()) {
+            int id = res.getFiducialId();
+            if (id == 20 || id == 24) {
+                double error = res.getTargetXDegrees();
+                iSum += error;
+                double derError = lastError - error;
 
-        lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
-        rb.setPower((error * p) + (iSum * i) + (derError * d));
-        lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
-        rf.setPower((error * p) + (iSum * i) + (derError * d));
+                lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
+                rb.setPower((error * p) + (iSum * i) + (derError * d));
+                lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
+                rf.setPower((error * p) + (iSum * i) + (derError * d));
 
-        lastError = error;
+                lastError = error;
+            }
+        }
 
         if (blockTimer.milliseconds() >= prepTime)
             feedLauncher();
@@ -522,7 +496,7 @@ public class StraferMain extends LinearOpMode{
            it's multiplied by 1.3 because the ball will hit the goal first, so using the
            equation, it'll be about 1 meter high (the height of the goal) when it hit our requested distance
          */
-        dist *= 0.0254 * 1.3;
+        dist *= 1.3;
 
         // The angle and velocity are both calculated using the distance we found
         shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);

@@ -10,6 +10,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -51,7 +52,7 @@ public class RedAutoReg extends OpMode{
     private Limelight3A cam;
     private VisionPortal visPort;
     private AprilTagProcessor apTag;
-    private AprilTagDetection foundTag;
+    private LLResultTypes.FiducialResult foundTag;
     private boolean tagFound;
 
     private final int GPP_ID = 21;
@@ -207,7 +208,12 @@ public class RedAutoReg extends OpMode{
 
         tagFound = false;
 
-        apTag = new AprilTagProcessor.Builder()
+        cam = hardwareMap.get(Limelight3A.class, "limelight");
+        cam.pipelineSwitch(0);
+
+        cam.start();
+
+        /*apTag = new AprilTagProcessor.Builder()
                 .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
                         new YawPitchRollAngles(AngleUnit.DEGREES, 0, 14, 0, 0))
                 .build();
@@ -216,7 +222,7 @@ public class RedAutoReg extends OpMode{
         visPort = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
                 .addProcessor(apTag)
-                .build();
+                .build();*/
     }
 
     public void loop(){
@@ -409,11 +415,9 @@ public class RedAutoReg extends OpMode{
 
     public void autonomousPathUpdate(){
         if (!tagFound){
-            List<AprilTagDetection> detections = apTag.getDetections();
-
-            for (AprilTagDetection tag : detections){
-                if (tag.metadata != null && (tag.id == GPP_ID || tag.id == PGP_ID || tag.id == PPG_ID)){
-                    buildPaths(tag.id);
+            for (LLResultTypes.FiducialResult tag : cam.getLatestResult().getFiducialResults()){
+                if (tag.getFiducialId() == GPP_ID || tag.getFiducialId() == PGP_ID || tag.getFiducialId() == PPG_ID){
+                    buildPaths(tag.getFiducialId());
                     foundTag = tag;
                     tagFound = true;
                     break;
