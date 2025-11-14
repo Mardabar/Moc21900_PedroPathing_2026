@@ -80,11 +80,6 @@ import java.util.List;
                     if (result.isValid()) {
                         // Some general info that I also yoinked from the ll website
                         Pose3D botpose = result.getBotpose();
-                        double captureLatency = result.getCaptureLatency();
-                        double targetingLatency = result.getTargetingLatency();
-
-                        telemetry.addData("LL Latency", captureLatency + targetingLatency);
-                        telemetry.addData("PythonOutput", java.util.Arrays.toString(result.getPythonOutput()));
 
                         telemetry.addData("tx", result.getTx());
                         telemetry.addData("txnc", result.getTxNC());
@@ -94,7 +89,7 @@ import java.util.List;
                         telemetry.addData("Botpose", botpose.toString());
 
 
-                        // This list should have the april tags info alr on it.
+                        // This list should have the april tags info alr on it
                         List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
                         for (LLResultTypes.FiducialResult fr : fiducialResults) {
                             telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());

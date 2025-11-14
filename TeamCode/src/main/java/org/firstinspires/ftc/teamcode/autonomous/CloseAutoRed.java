@@ -171,13 +171,14 @@ public class CloseAutoRed extends OpMode {
                 if (!follower.isBusy() && shootTimerCount == 3){
                     shootTimerCount = -1;
                     timerCount = -1;
-                    shoot();
+                    //shoot();
                     setPathState(1);
                 }
                 break;
 
             case 1:
-                if (!follower.isBusy() && timerCount == -1){
+                if (!follower.isBusy() && pathState == 1){
+                    timerCount = 0;
                     follower.followPath(pathParkPose);
                 }
                 break;
