@@ -809,7 +809,7 @@ public class RedAutoReg extends OpMode{
         telemetry.addData("Real Velocity", angleToVel(distToAngle(dist)));
         telemetry.update();
 
-        //setElbowTarget(angleToEncoder(shootAngle));
+        setElbowTarget(angleToEncoder(shootAngle));
     }
 
     private double distToAngle(double dist){
