@@ -481,8 +481,7 @@ public class RedAutoRegV2 extends OpMode{
                     }
                     break;
 
-                case 22: // NEW: Action State (Shooting)
-                    // 3. EXECUTE the shooting action
+                case 22:
                     if (shootTimerCount != 2) {
                         shoot();
                     } else {
