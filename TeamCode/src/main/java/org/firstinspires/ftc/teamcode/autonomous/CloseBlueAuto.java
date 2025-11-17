@@ -52,7 +52,7 @@ public class CloseBlueAuto extends OpMode{
     private final Pose scanTagPose = new Pose(60, 91, Math.toRadians(90)); // SCANNING APRIL TAG POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
-    // Obelisk #21 --------------------------------------------------
+    // Obelisk #21 GPP --------------------------------------------------
     private final Pose Ob21Grab1GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab1GP1CP = new Pose(70, 45, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2P1 = new Pose(36, 59.8, Math.toRadians(0)); // POSITION
@@ -68,7 +68,9 @@ public class CloseBlueAuto extends OpMode{
     private final Pose Ob21GrabGPP3 = new Pose(19, 42, Math.toRadians(90)); // POSITION
     private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
-    // Obelisk #22 --------------------------------------------------
+    // Start here for conversion to close auto tn!!!!!!
+
+    // Obelisk #22 PGP --------------------------------------------------
     private final Pose Ob22Grab1P1 = new Pose(36, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab1P1CP = new Pose(70, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob22Grab2GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
@@ -85,7 +87,7 @@ public class CloseBlueAuto extends OpMode{
     private final Pose Ob22GrabPGP3 = new Pose(26, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob22Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
-    // Obelisk #23 --------------------------------------------------
+    // Obelisk #23 PPG --------------------------------------------------
     private final Pose Ob23Grab1PP1 = new Pose(31, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob23Grab1PP1CP = new Pose(68, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob23Grab2G1 = new Pose(36, 35.5, Math.toRadians(0)); // POSITION
@@ -131,13 +133,13 @@ public class CloseBlueAuto extends OpMode{
 
     // PATH CHAINS
 
-    // Obelisk #21
+    // Obelisk #21 GPP
     private PathChain pathOb21PreScore, pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
             pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
-    // Obelisk #22
+    // Obelisk #22 PGP
     private PathChain pathOb22PreScore, pathOb22Grab1P1, pathOb22Grab2GP1, pathOb22Score1, pathOb22Grab1PG2, pathOb22Grab2P2,
             pathOb22Score2, pathOb22Grab3, pathOb22GrabPGP3, pathOb22Score3, pathOb22Park;
-    // Obelisk #23
+    // Obelisk #23 PPG
     private PathChain pathOb23PreScore, pathOb23Grab1PP1, pathOb23Grab2G1, pathOb23Score1, pathOb23Grab1P2, pathOb23Grab2PG2,
             pathOb23Score2, pathOb23Grab3, pathOb23GrabPPG3, pathOb23Score3, pathOb23Park;
 
@@ -462,6 +464,7 @@ public class CloseBlueAuto extends OpMode{
                     break;
                 // I added case 21 and 22 to seperate the bot moving to its position/correcting itself and the shooting function.
                 // then only when the path is fully complete and at the right pos, the shoot function will occur
+                // I added this because your shoot function changes shootTimerCount to 2 then at the end sets it to 1
                 case 21:
                     if (!fol.isBusy()){
                         setPathState(22);
@@ -841,6 +844,7 @@ public class CloseBlueAuto extends OpMode{
         elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
+    // shootTimerCount has to = -1 for it to reset to 0 here to move on in the function
     private void shoot(){
         if (shootTimerCount == -1) {
             shootTimer.reset();
@@ -859,6 +863,7 @@ public class CloseBlueAuto extends OpMode{
         if (shootTimer.milliseconds() < (feedDur + retDur) * 3 && shootTimerCount == 1){
             feedLauncher();
         }
+        // Crucial here because it changes shootTimerCount to 2 from
         else if (shootTimerCount == 1)
             shootTimerCount = 2;
 

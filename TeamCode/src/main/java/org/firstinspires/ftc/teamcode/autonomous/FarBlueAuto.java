@@ -51,7 +51,7 @@ public class FarBlueAuto extends OpMode{
     private final Pose preScorePose = new Pose(56, 16, Math.toRadians(115)); // PRE-LOAD SCORING POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
-        // Obelisk #21 --------------------------------------------------
+        // Obelisk #21 GPP --------------------------------------------------
     private final Pose Ob21Grab1GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab1GP1CP = new Pose(70, 45, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2P1 = new Pose(36, 59.8, Math.toRadians(0)); // POSITION
@@ -67,7 +67,7 @@ public class FarBlueAuto extends OpMode{
     private final Pose Ob21GrabGPP3 = new Pose(19, 42, Math.toRadians(90)); // POSITION
     private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
-        // Obelisk #22 --------------------------------------------------
+        // Obelisk #22 PGP--------------------------------------------------
     private final Pose Ob22Grab1P1 = new Pose(36, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab1P1CP = new Pose(70, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob22Grab2GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
@@ -84,7 +84,7 @@ public class FarBlueAuto extends OpMode{
     private final Pose Ob22GrabPGP3 = new Pose(26, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob22Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
-        // Obelisk #23 --------------------------------------------------
+        // Obelisk #23 PPG --------------------------------------------------
     private final Pose Ob23Grab1PP1 = new Pose(31, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob23Grab1PP1CP = new Pose(68, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob23Grab2G1 = new Pose(36, 35.5, Math.toRadians(0)); // POSITION
