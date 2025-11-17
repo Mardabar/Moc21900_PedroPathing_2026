@@ -420,6 +420,7 @@ public class RedAutoReg extends OpMode{
                     buildPaths(tag.getFiducialId());
                     foundTag = tag;
                     tagFound = true;
+                    cam.stop();
                     break;
                 }
             }
