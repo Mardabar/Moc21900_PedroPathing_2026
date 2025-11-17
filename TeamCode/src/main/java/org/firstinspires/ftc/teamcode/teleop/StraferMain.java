@@ -32,6 +32,7 @@ public class StraferMain extends LinearOpMode{
     private DcMotor belt;
     private DcMotorEx elbow;
 
+    private CRServo ascension;
     private Servo blocker;
     private CRServo br;
     private CRServo bl;
@@ -69,8 +70,9 @@ public class StraferMain extends LinearOpMode{
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
     private double feedDur = 300;
-    private double retDur = 900;
-    private int feeding = 1; // Positive is feeding; negative is not feeding
+    private double ascendDur = 500;
+    private double retDur = 400;
+    private int feeding = 1;
 
     // SHOOTING VARS
 
@@ -93,7 +95,7 @@ public class StraferMain extends LinearOpMode{
 
     private boolean shootPrep;
     private boolean shootReady;
-    private double prepTime = 1600;
+    private double prepTime = 1400;
 
 
     // OTHER VARS
@@ -143,6 +145,7 @@ public class StraferMain extends LinearOpMode{
         ls.setMotorDisable();
         rs.setMotorDisable();
 
+        ascension = hardwareMap.get(CRServo.class, "ascension");
         blocker = hardwareMap.get(Servo.class, "blocker");
         br = hardwareMap.get(CRServo.class, "br");
         bl = hardwareMap.get(CRServo.class, "bl");
@@ -280,29 +283,22 @@ public class StraferMain extends LinearOpMode{
                                 camPic = cam.getLatestResult();
                                 if (camPic.isValid())
                                     initShooting(camPic);
-
-                                /*List<AprilTagDetection> detections = apTag.getDetections(); // Gets all detected apriltag ids
-                                // Runs through each apriltag found and checks if it's a target
-                                for (AprilTagDetection tag : detections) {
-                                    if (tag.metadata.id == 24 || tag.metadata.id == 20) {
-                                        tagDist = tag.ftcPose.y;
-                                        foundTag = tag;
-                                    }
-                                }
-
-                                // Checks if the correct april tag was found before the shooting position gets set
-                                if (foundTag != null) {
-                                    setShootPos(tagDist);
-                                    blocker.setPosition(1);
-                                    blockTimer.reset();
-
-                                    ls.setMotorEnable();
-                                    rs.setMotorEnable();
-
-                                    shootPrep = true;
-                                }*/
                             } else
                                 runBelt(0);
+
+                            if (gamepad2.y){
+                                if (feeding == 0) {
+                                    blocker.setPosition(0);
+                                    feedTimer.reset();
+                                    feeding = 1;
+                                }
+                                else if (feeding == 1 && feedTimer.milliseconds() > feedDur){
+                                    blocker.setPosition(1);
+                                    feeding = 2;
+                                }
+                            }
+                            else
+                                feeding = 0;
                         }
 
                         if (gamepad2.a && shootReady){
@@ -366,6 +362,20 @@ public class StraferMain extends LinearOpMode{
                                     initShooting(camPic);
                             } else
                                 runBelt(0);
+
+                            if (gamepad1.left_stick_button){
+                                if (feeding == 0) {
+                                    blocker.setPosition(0);
+                                    feedTimer.reset();
+                                    feeding = 1;
+                                }
+                                else if (feeding == 1 && feedTimer.milliseconds() > feedDur){
+                                    blocker.setPosition(1);
+                                    feeding = 2;
+                                }
+                            }
+                            else
+                                feeding = 0;
                         }
 
                         if (gamepad1.a && shootReady)
@@ -390,6 +400,13 @@ public class StraferMain extends LinearOpMode{
                         }
                         else
                             runBelt(0);
+
+                        if (gamepad1.a){
+                            ascension.setPower(1);
+                        }
+                        else {
+                            ascension.setPower(0);
+                        }
 
                         ls.setPower(gamepad1.left_trigger);
                         rs.setPower(gamepad1.right_trigger);
@@ -435,6 +452,7 @@ public class StraferMain extends LinearOpMode{
                 double tagDist = (0.646 / Math.tan(Math.toRadians(angle)));
 
                 setShootPos(tagDist);
+                feeding = 0;
                 blocker.setPosition(1);
                 blockTimer.reset();
 
@@ -536,23 +554,30 @@ public class StraferMain extends LinearOpMode{
         elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    private void runBelt(double speed){
+    private void runBelt(double speed) {
         belt.setPower(speed);
         br.setPower(speed);
         bl.setPower(-speed);
     }
 
     private void feedLauncher(){
-        if (feedTimer.milliseconds() < feedDur && feeding == 1){
+        if (feedTimer.milliseconds() < feedDur && feeding == 0){
             blocker.setPosition(0);
             runBelt(0);
         }
-        else if (feedTimer.milliseconds() < retDur && feeding == -1) {
-            blocker.setPosition(1);
+        else if (feedTimer.milliseconds() < ascendDur && feeding == 1){
+            ascension.setPower(1);
             runBelt(-beltSpeed);
         }
+        else if (feedTimer.milliseconds() < retDur && feeding == 2) {
+            blocker.setPosition(1);
+            ascension.setPower(0);
+        }
         else {
-            feeding *= -1;
+            if (feeding == 2)
+                feeding = 0;
+            else
+                feeding++;
             feedTimer.reset();
         }
     }
