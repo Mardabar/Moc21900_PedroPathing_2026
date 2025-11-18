@@ -423,7 +423,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case -1:
                     if (!fol.isBusy() && shootTimerCount == -1){
                         fol.followPath(pathOb21PreScore);
-                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                     }
 
                     if (shootTimerCount != 2)
@@ -438,7 +438,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case 0:
                     if (!fol.isBusy() && pathState == 0){
                         fol.followPath(pathOb21Grab1GP1);
-                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                         runBelt(-beltSpeed);
                         setPathState(1);
                     }
@@ -459,8 +459,8 @@ public class FarBlueAutoV2 extends OpMode{
                         setPathState(21);
                     }
                     break;
-                    // I added case 21 and 22 to seperate the bot moving to its position/correcting itself and the shooting function.
-                    // then only when the path is fully complete and at the right pos, the shoot function will occur
+                // I added case 21 and 22 to seperate the bot moving to its position/correcting itself and the shooting function.
+                // then only when the path is fully complete and at the right pos, the shoot function will occur
                 case 21:
                     if (!fol.isBusy()){
                         setPathState(22);
@@ -509,7 +509,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case 6:
                     if (!fol.isBusy()){
                         fol.followPath(pathOb21Grab3);
-                        setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 135, 135);
+                        setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 9, 135);
                         setPathState(7);
                     }
                     break;
@@ -556,7 +556,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case -1:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22PreScore);
-                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                         shoot();
                         timerCount++;
                     }
@@ -571,7 +571,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case 0:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Grab1P1);
-                        setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 135, 135);
+                        setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 9, 135);
                         runBelt(-beltSpeed);
                         setPathState(1);
                     }
@@ -628,7 +628,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case 6:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb22Grab3);
-                        setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 135, 135);
+                        setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 9, 135);
                         setPathState(7);
                     }
                     break;
@@ -672,7 +672,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case -1:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23PreScore);
-                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                         shoot();
                         timerCount++;
                     }
@@ -687,7 +687,7 @@ public class FarBlueAutoV2 extends OpMode{
                 case 0:
                     if (!fol.isBusy() && timerCount == -1){
                         fol.followPath(pathOb23Grab1PP1);
-                        setShootPos(Ob23Score1.getX(), Ob23Score1.getY(), 135, 135);
+                        setShootPos(Ob23Score1.getX(), Ob23Score1.getY(), 9, 135);
                         runBelt(-beltSpeed);
                         setPathState(1);
                     }
