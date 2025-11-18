@@ -408,7 +408,7 @@ public class CloseBlueAuto extends OpMode{
 
             if (!tagFound) {
                 switch (pathState) {
-                    // Edited so it runs to the first pose
+                    // Edited so it runs to the first pose and scores preloads
                     case -3:
                         if (!fol.isBusy() && shootTimerCount == -1){
 
@@ -417,7 +417,7 @@ public class CloseBlueAuto extends OpMode{
                                     .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
                                     .setBrakingStrength(4)
                                     .build());
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                         }
 
                         if (!fol.isBusy()) {
@@ -440,7 +440,6 @@ public class CloseBlueAuto extends OpMode{
                         }
 
                         if (!fol.isBusy()) {
-                            // Robot is at scanTagPose. Actively scan.
                             for (LLResultTypes.FiducialResult tag : cam.getLatestResult().getFiducialResults()){
                                 if (tag.getFiducialId() == GPP_ID || tag.getFiducialId() == PGP_ID || tag.getFiducialId() == PPG_ID){
                                     buildPaths(tag.getFiducialId()); // Build paths based on result of the tag
@@ -476,7 +475,7 @@ public class CloseBlueAuto extends OpMode{
                     case 0:
                         if (!fol.isBusy()){
                             fol.followPath(pathOb21Grab1GP1);
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                             runBelt(-beltSpeed);
                             setPathState(1);
                         }
@@ -545,7 +544,7 @@ public class CloseBlueAuto extends OpMode{
                     case 6:
                         if (!fol.isBusy()){
                             fol.followPath(pathOb21Grab3);
-                            setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 135, 135);
+                            setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 9, 135);
                             setPathState(7);
                         }
                         break;
@@ -598,7 +597,7 @@ public class CloseBlueAuto extends OpMode{
                                     .setLinearHeadingInterpolation(fol.getPose().getHeading(), preScorePose.getHeading())
                                     .setBrakingStrength(4)
                                     .build());
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
                             shoot();
                             timerCount++;
                         }
@@ -613,7 +612,7 @@ public class CloseBlueAuto extends OpMode{
                     case 0:
                         if (!fol.isBusy() && timerCount == -1){
                             fol.followPath(pathOb22Grab1P1);
-                            setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 135, 135);
+                            setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 9, 135);
                             runBelt(-beltSpeed);
                             setPathState(1);
                         }
@@ -670,7 +669,7 @@ public class CloseBlueAuto extends OpMode{
                     case 6:
                         if (!fol.isBusy() && timerCount == -1){
                             fol.followPath(pathOb22Grab3);
-                            setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 135, 135);
+                            setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 9, 135);
                             setPathState(7);
                         }
                         break;
