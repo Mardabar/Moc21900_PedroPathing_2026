@@ -28,7 +28,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.teamcode.RobotPoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.Tuning;
 import org.firstinspires.ftc.vision.VisionPortal;
@@ -49,7 +48,8 @@ public class StraferOpV2 extends LinearOpMode {
     private DcMotor rs;
     private DcMotor belt;
     private DcMotor elbow;
-    
+
+    private CRServo launchServo;
     private CRServo br;
     private CRServo bl;
     private Servo blocker;
@@ -117,6 +117,7 @@ public class StraferOpV2 extends LinearOpMode {
         
         // Servo naming 
         blocker = hardwareMap.get(Servo.class, "blocker");
+        launchServo = hardwareMap.get(CRServo.class, "launchServo");
         br = hardwareMap.get(CRServo.class, "br");
         bl = hardwareMap.get(CRServo.class, "bl");
 
@@ -175,6 +176,14 @@ public class StraferOpV2 extends LinearOpMode {
                 bl.setPower(0);
             }
 
+            // New servo Gabe added that is in the launcher.
+            if (gamepad1.y) {
+                launchServo.setPower(1);
+            } else if (gamepad1.x) {
+                launchServo.setPower(-1);
+            } else {
+                launchServo.setPower(0);
+            }
             // Function for new servo Gabe added
             if (gamepad2.y)
                 blocker.setPosition(0.1);

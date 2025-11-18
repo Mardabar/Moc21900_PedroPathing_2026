@@ -51,7 +51,7 @@ public class FarBlueAuto extends OpMode{
     private final Pose preScorePose = new Pose(56, 16, Math.toRadians(115)); // PRE-LOAD SCORING POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
-        // Obelisk #21 GPP --------------------------------------------------
+    // Obelisk #21 GPP --------------------------------------------------
     private final Pose Ob21Grab1GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
     private final Pose Ob21Grab1GP1CP = new Pose(70, 45, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob21Grab2P1 = new Pose(36, 59.8, Math.toRadians(0)); // POSITION
@@ -67,7 +67,7 @@ public class FarBlueAuto extends OpMode{
     private final Pose Ob21GrabGPP3 = new Pose(19, 42, Math.toRadians(90)); // POSITION
     private final Pose Ob21Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
-        // Obelisk #22 PGP--------------------------------------------------
+    // Obelisk #22 PGP--------------------------------------------------
     private final Pose Ob22Grab1P1 = new Pose(36, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob22Grab1P1CP = new Pose(70, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob22Grab2GP1 = new Pose(31, 35.5, Math.toRadians(0)); // POSITION
@@ -84,7 +84,7 @@ public class FarBlueAuto extends OpMode{
     private final Pose Ob22GrabPGP3 = new Pose(26, 59.8, Math.toRadians(0)); // POSITION
     private final Pose Ob22Score3 = new Pose(61, 18, Math.toRadians(115)); // POSITION
 
-        // Obelisk #23 PPG --------------------------------------------------
+    // Obelisk #23 PPG --------------------------------------------------
     private final Pose Ob23Grab1PP1 = new Pose(31, 84, Math.toRadians(0)); // POSITION
     private final Pose Ob23Grab1PP1CP = new Pose(68, 96, Math.toRadians(0)); // CONTROL POINT
     private final Pose Ob23Grab2G1 = new Pose(36, 35.5, Math.toRadians(0)); // POSITION
@@ -130,15 +130,15 @@ public class FarBlueAuto extends OpMode{
 
     // PATH CHAINS
 
-        // Obelisk #21
+    // Obelisk #21
     private PathChain pathOb21PreScore, pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
-                pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
-        // Obelisk #22
+            pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
+    // Obelisk #22
     private PathChain pathOb22PreScore, pathOb22Grab1P1, pathOb22Grab2GP1, pathOb22Score1, pathOb22Grab1PG2, pathOb22Grab2P2,
-                pathOb22Score2, pathOb22Grab3, pathOb22GrabPGP3, pathOb22Score3, pathOb22Park;
-        // Obelisk #23
+            pathOb22Score2, pathOb22Grab3, pathOb22GrabPGP3, pathOb22Score3, pathOb22Park;
+    // Obelisk #23
     private PathChain pathOb23PreScore, pathOb23Grab1PP1, pathOb23Grab2G1, pathOb23Score1, pathOb23Grab1P2, pathOb23Grab2PG2,
-                pathOb23Score2, pathOb23Grab3, pathOb23GrabPPG3, pathOb23Score3, pathOb23Park;
+            pathOb23Score2, pathOb23Grab3, pathOb23GrabPPG3, pathOb23Score3, pathOb23Park;
 
     // OTHER VARS
 
