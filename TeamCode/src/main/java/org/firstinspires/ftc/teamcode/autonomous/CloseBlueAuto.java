@@ -470,7 +470,6 @@ public class CloseBlueAuto extends OpMode{
 
             if (chainNum == 21 && tagFound) {
                 switch (pathState) {
-                    case -1:
                         // This handles moving from scanTagPose to preScorePose and the preshooting
                     case 0:
                         if (!fol.isBusy()){
