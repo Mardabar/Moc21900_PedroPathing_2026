@@ -7,17 +7,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 @TeleOp(name = "StraferMain")
 public class StraferMain extends LinearOpMode{
@@ -42,15 +35,6 @@ public class StraferMain extends LinearOpMode{
     private Limelight3A cam;
     private LLResult camPic;
 
-    //private OpenCvCamera cam;
-    //private Mat camFrame;
-
-    private VisionPortal visPort;
-    private AprilTagProcessor apTag;
-    private AprilTagDetection foundTag;
-    //private double posX;
-    //private double posY;
-
     // SPEED AND POSITIONS
 
     private double mainSpeed = 0.5;
@@ -69,15 +53,15 @@ public class StraferMain extends LinearOpMode{
     private double openPos = 0.53;
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
-    private double feedDur = 300;
-    private double ascendDur = 500;
-    private double retDur = 400;
-    private int feeding = 1;
+    private double feedDur = 200;
+    private double ascendDur = 900;
+    private double retDur = 600;
+    private int feeding;
 
     // SHOOTING VARS
 
-    private final double OVERSHOOT_VEL_MULT = 1.726;
-    private final double OVERSHOOT_ANG_MULT = 1; // 3.25
+    private final double OVERSHOOT_VEL_MULT = 1.68;
+    private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
     private final int ELBOW_GEAR_RATIO = 4;
     private final double MAX_HEIGHT = 1.4;
@@ -86,15 +70,13 @@ public class StraferMain extends LinearOpMode{
     private double lastError;
     private double iSum;
 
-    private double tagDist;
     private double shootVel;
     private double shootAngle;
     private double shootRot;
-    private double angAdjSpeed = 1;
-    private boolean foundAngle;
 
     private boolean shootPrep;
     private boolean shootReady;
+    private boolean flysSpeedy;
     private double prepTime = 1400;
 
 
@@ -142,6 +124,9 @@ public class StraferMain extends LinearOpMode{
         setElbowTarget(0);
         elbow.setPower(elbowSpeed);
 
+        ls.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        rs.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
         ls.setMotorDisable();
         rs.setMotorDisable();
 
@@ -154,21 +139,6 @@ public class StraferMain extends LinearOpMode{
 
         cam = hardwareMap.get(Limelight3A.class, "limelight");
         cam.pipelineSwitch(0);
-
-        /*apTag = new AprilTagProcessor.Builder()
-                .setCameraPose(new Position(DistanceUnit.INCH, -7, -7, 14, 0),
-                        new YawPitchRollAngles(AngleUnit.DEGREES, 0, 14, 0, 0))
-                .build();
-        apTag.setDecimation(2);
-
-        visPort = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "Cam"))
-                .addProcessor(apTag)
-                .build();*/
-
-        // Odometry
-
-
 
         // Other Vars
 
@@ -286,6 +256,7 @@ public class StraferMain extends LinearOpMode{
                             } else
                                 runBelt(0);
 
+                            // Feeds the launcher a ball
                             if (gamepad2.y){
                                 if (feeding == 0) {
                                     blocker.setPosition(0);
@@ -301,6 +272,7 @@ public class StraferMain extends LinearOpMode{
                                 feeding = 0;
                         }
 
+                        // Shoots the ball when conditions are met
                         if (gamepad2.a && shootReady){
                             shoot();
                         }
@@ -363,6 +335,7 @@ public class StraferMain extends LinearOpMode{
                             } else
                                 runBelt(0);
 
+                            // Feeds the launcher a ball
                             if (gamepad1.left_stick_button){
                                 if (feeding == 0) {
                                     blocker.setPosition(0);
@@ -378,6 +351,7 @@ public class StraferMain extends LinearOpMode{
                                 feeding = 0;
                         }
 
+                        // Shoots the ball when conditions are met
                         if (gamepad1.a && shootReady)
                             shoot();
                         else if (shootReady)
@@ -408,8 +382,8 @@ public class StraferMain extends LinearOpMode{
                             ascension.setPower(0);
                         }
 
-                        ls.setPower(gamepad1.left_trigger);
-                        rs.setPower(gamepad1.right_trigger);
+                        ls.setVelocity(gamepad1.left_trigger * 2800);
+                        rs.setVelocity(gamepad1.right_trigger * 2800);
                         telemetry.addData("Flywheel Speed", "ls: " + Math.round(ls.getPower()) +
                                 "    rs: " + Math.round(rs.getPower()));
 
@@ -487,23 +461,26 @@ public class StraferMain extends LinearOpMode{
             }
         }
 
-        if (blockTimer.milliseconds() >= prepTime)
+        if (!flysSpeedy && ls.getVelocity() >= shootRot && rs.getVelocity() >= shootRot)
+            flysSpeedy = true;
+        if (flysSpeedy)
             feedLauncher();
 
-        ls.setPower(shootRot);
-        rs.setPower(shootRot);
+        ls.setVelocity(shootRot);
+        rs.setVelocity(shootRot);
     }
 
     private void resetBack(){
         feeding = 1;
         blocker.setPosition(1);
+        ascension.setPower(0);
         runBelt(0);
         ls.setPower(0);
         rs.setPower(0);
         ls.setMotorDisable();
         rs.setMotorDisable();
 
-        //foundTag = null;
+        flysSpeedy = false;
         shootPrep = false;
         shootReady = false;
     }
@@ -517,7 +494,7 @@ public class StraferMain extends LinearOpMode{
         dist *= 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 53.5);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
         telemetry.addData("Distance", dist / 1.3);
@@ -540,7 +517,7 @@ public class StraferMain extends LinearOpMode{
 
     // This function translates velocity to motor power specifically for 6000 RPM motors combined with 72 mm Gecko Wheels
     private double velToRot(double vel){
-        return vel / (7.2 * Math.PI);
+        return (vel / (7.2 * Math.PI)) * 2800;
         //return (vel / (0.5184 * Math.PI)) * 28;
     }
 
@@ -567,17 +544,19 @@ public class StraferMain extends LinearOpMode{
         }
         else if (feedTimer.milliseconds() < ascendDur && feeding == 1){
             ascension.setPower(1);
-            runBelt(-beltSpeed);
         }
         else if (feedTimer.milliseconds() < retDur && feeding == 2) {
             blocker.setPosition(1);
             ascension.setPower(0);
+            runBelt(-beltSpeed);
         }
         else {
-            if (feeding == 2)
-                feeding = 0;
-            else
-                feeding++;
+            if (ls.getVelocity() >= shootRot - 30 && rs.getVelocity() >= shootRot - 30) {
+                if (feeding == 2)
+                    feeding = 0;
+                else
+                    feeding++;
+            }
             feedTimer.reset();
         }
     }
