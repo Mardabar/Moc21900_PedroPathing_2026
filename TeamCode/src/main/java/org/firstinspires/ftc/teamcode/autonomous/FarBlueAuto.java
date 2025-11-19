@@ -17,12 +17,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.RobotPoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@Autonomous(name = "FarBlueAuto", group = "autonomous")
+@Autonomous(name = "DONT USE THIS", group = "autonomous")
 public class FarBlueAuto extends OpMode{
 
     // PEDROPATHING VARS
@@ -216,8 +215,6 @@ public class FarBlueAuto extends OpMode{
         autonomousPathUpdate();
 
         // This stores the ending position of the bot at the end of auto
-        Pose finalPose = fol.getPose();
-        RobotPoseStorage.currentPose = finalPose;
 
         // Not sure if this is in the right spot :skull:
         // Its either inside the loop or outside but outside prolly wouldnt make sense

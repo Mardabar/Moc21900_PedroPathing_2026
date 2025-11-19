@@ -17,7 +17,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.RobotPoseStorage;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -220,7 +219,6 @@ public class CloseBlueAuto extends OpMode{
 
         // This stores the ending position of the bot at the end of auto
         Pose finalPose = fol.getPose();
-        RobotPoseStorage.currentPose = finalPose;
 
         // Not sure if this is in the right spot :skull:
         // Its either inside the loop or outside but outside prolly wouldnt make sense
