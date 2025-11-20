@@ -49,8 +49,13 @@ public class TempCloseBlue extends OpMode{
     private final Pose startPose = new Pose(23, 125, Math.toRadians(144)); // STARTING POSITION
     private final Pose preScorePose = new Pose(60, 100, Math.toRadians(144)); // PRE-LOAD SCORING POSITION
     private final Pose row1Line = new Pose(44, 84, Math.toRadians(0)); // Position
-    private final Pose grabRow1 = new Pose(21.5, 84, Math.toRadians(0)); // Position
-    private final Pose scoreRow1 = new Pose(60, 75, Math.toRadians(135)); // Position
+
+    private final Pose grabRow1 = new Pose(33, 84, Math.toRadians(0)); // Position
+    private final Pose scoreRow1 = new Pose(60, 75, Math.toRadians(135)); // Scoring
+    private final Pose row2Line = new Pose(44, 60, Math.toRadians(0)); // Position
+    private final Pose grabRow2 = new Pose(33, 60, Math.toRadians(0));
+    private final Pose scoreRow2 = new Pose(60, 75, Math.toRadians(135));
+
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(0)); // PARKING POSITION
 
 
@@ -92,12 +97,12 @@ public class TempCloseBlue extends OpMode{
     private ElapsedTime feedTimer;
     private double ascendDur = 500;
     private double feedDur = 50;
-    private double retDur = 550;
+    private double retDur = 700;
     private int feeding = 0;
 
 
     // PATH CHAINS
-    private PathChain pathPreScore, pathRow1Line, pathGrabRow1, pathScoreRow1;
+    private PathChain pathPreScore, pathRow1Line, pathGrabRow1, pathScoreRow1, pathRow2Line, pathGrabRow2, pathScoreRow2;
 
 
     // OTHER VARS
@@ -197,6 +202,16 @@ public class TempCloseBlue extends OpMode{
                 .addPath(new BezierLine(grabRow1, scoreRow1))
                 .setLinearHeadingInterpolation(grabRow1.getHeading(), scoreRow1.getHeading())
                 .build();
+
+        pathRow2Line = fol.pathBuilder()
+                .addPath(new BezierLine(scoreRow1, row2Line))
+                .setLinearHeadingInterpolation(scoreRow1.getHeading(), row2Line.getHeading())
+                .build();
+
+        pathGrabRow2 = fol.pathBuilder()
+                .addPath(new BezierLine(row2Line, grabRow2))
+                .setLinearHeadingInterpolation(row2Line.getHeading(), grabRow2.getHeading())
+                .build();
     }
 
     // LEIFAGE THIS IS FOR YOU PLZ READ
@@ -246,9 +261,32 @@ public class TempCloseBlue extends OpMode{
                 case 1:
                     if (!fol.isBusy()) {
                         fol.followPath(pathGrabRow1);
-                        fol.setMaxPower(0.6);
                         runBelt(-beltSpeed);
                         setPathState(2);
+                    }
+                    break;
+
+                case 2:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathScoreRow1);
+                        setShootPos(scoreRow1.getX(), scoreRow1.getY(), 9, 135);
+                        runBelt(0);
+                        setPathState(3);
+                    }
+                    break;
+
+                case 3:
+                    if (!fol.isBusy()){
+                        setPathState(4);
+                    }
+                    break;
+
+                case 4:
+                    if (shootTimerCount != 2)
+                        shoot();
+                    else {
+                        shootTimerCount = -1;
+                        setPathState(5);
                     }
                     break;
             }
@@ -274,7 +312,7 @@ public class TempCloseBlue extends OpMode{
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 53.5);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
         telemetry.addData("Distance", dist);
@@ -328,8 +366,8 @@ public class TempCloseBlue extends OpMode{
             feedTimer.reset();
             shootTimerCount = 1;
         }
-
-        if (shootTimer.milliseconds() < (feedDur + ascendDur + retDur) * 3 && shootTimerCount == 1){
+        // Changed the multiplier to 2 because we are grabbing 2 balls instead of 3
+        if (shootTimer.milliseconds() < (feedDur + ascendDur + retDur) * 2 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)
