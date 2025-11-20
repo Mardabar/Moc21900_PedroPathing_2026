@@ -438,7 +438,7 @@ public class CloseBlueAuto extends OpMode{
 
                 case -3:
                     if (!fol.isBusy()) {
-                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
 
                         if (shootTimerCount != 2) {
                             shoot();
@@ -819,7 +819,7 @@ public class CloseBlueAuto extends OpMode{
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 53.5);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
         telemetry.addData("Distance", dist);
