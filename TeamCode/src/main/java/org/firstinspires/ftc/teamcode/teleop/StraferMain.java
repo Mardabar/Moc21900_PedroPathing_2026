@@ -383,12 +383,21 @@ public class StraferMain extends LinearOpMode{
                         if (gamepad1.a){
                             ascension.setPower(1);
                         }
+                        else if (gamepad2.b){
+                            ascension.setPower(-1);
+                        }
                         else {
                             ascension.setPower(0);
                         }
 
-                        ls.setVelocity(gamepad1.left_trigger * 2800);
-                        rs.setVelocity(gamepad1.right_trigger * 2800);
+                        if (gamepad2.x){
+                            ls.setPower(-0.4);
+                            rs.setPower(-0.4);
+                        }
+                        else {
+                            ls.setVelocity(gamepad1.left_trigger * 2800);
+                            rs.setVelocity(gamepad1.right_trigger * 2800);
+                        }
                         telemetry.addData("Flywheel Speed", "ls: " + Math.round(ls.getPower()) +
                                 "    rs: " + Math.round(rs.getPower()));
 
@@ -453,20 +462,29 @@ public class StraferMain extends LinearOpMode{
         telemetry.update();
 
         // This section uses PID to control the angle the robot is facing towards the april tag
-        camPic = cam.getLatestResult();
-        for (LLResultTypes.FiducialResult res : camPic.getFiducialResults()) {
-            int id = res.getFiducialId();
-            if (id == 20 || id == 24) {
-                double error = res.getTargetXDegrees();
-                iSum += error;
-                double derError = lastError - error;
+        if (gamepad1.left_bumper){
+            lb.setPower(turnMult * gamepad1.right_stick_x * -speed);
+            rb.setPower(turnMult * gamepad1.right_stick_x * speed);
 
-                lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
-                rb.setPower((error * p) + (iSum * i) + (derError * d));
-                lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
-                rf.setPower((error * p) + (iSum * i) + (derError * d));
+            lf.setPower(turnMult * gamepad1.right_stick_x * -speed);
+            rf.setPower(turnMult * gamepad1.right_stick_x * speed);
+        }
+        else {
+            camPic = cam.getLatestResult();
+            for (LLResultTypes.FiducialResult res : camPic.getFiducialResults()) {
+                int id = res.getFiducialId();
+                if (id == 20 || id == 24) {
+                    double error = res.getTargetXDegrees();
+                    iSum += error;
+                    double derError = lastError - error;
 
-                lastError = error;
+                    lb.setPower(-((error * p) + (iSum * i) + (derError * d)));
+                    rb.setPower((error * p) + (iSum * i) + (derError * d));
+                    lf.setPower(-((error * p) + (iSum * i) + (derError * d)));
+                    rf.setPower((error * p) + (iSum * i) + (derError * d));
+
+                    lastError = error;
+                }
             }
         }
 
