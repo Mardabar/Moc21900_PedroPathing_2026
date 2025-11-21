@@ -47,7 +47,7 @@ public class CloseBlueAuto extends OpMode{
     // POSITIONS
 
     private final Pose startPose = new Pose(21, 122.5, Math.toRadians(144)); // STARTING POSITION
-    private final Pose preScorePose = new Pose(56, 16, Math.toRadians(144)); // PRE-LOAD SCORING POSITION
+    private final Pose preScorePose = new Pose(60, 91, Math.toRadians(144)); // PRE-LOAD SCORING POSITION
     private final Pose scanTagPose = new Pose(60, 91, Math.toRadians(90)); // SCANNING APRIL TAG POSITION
     private final Pose parkPose = new Pose(39, 33, Math.toRadians(90)); // PARKING POSITION
 
@@ -133,12 +133,15 @@ public class CloseBlueAuto extends OpMode{
     // PATH CHAINS
 
     // Obelisk #21 GPP
+    private PathChain pathOb21Transition; // New transition path
     private PathChain pathOb21PreScore, pathOb21Grab1GP1, pathOb21Grab2P1, pathOb21Score1, pathOb21Grab1G2, pathOb21Grab2PP2,
             pathOb21Score2, pathOb21Grab3, pathOb21GrabGPP3, pathOb21Score3, pathOb21Park;
     // Obelisk #22 PGP
+    private PathChain pathOb22Transition; // New transition path
     private PathChain pathOb22PreScore, pathOb22Grab1P1, pathOb22Grab2GP1, pathOb22Score1, pathOb22Grab1PG2, pathOb22Grab2P2,
             pathOb22Score2, pathOb22Grab3, pathOb22GrabPGP3, pathOb22Score3, pathOb22Park;
     // Obelisk #23 PPG
+    private PathChain pathOb23Transition; // New transition path
     private PathChain pathOb23PreScore, pathOb23Grab1PP1, pathOb23Grab2G1, pathOb23Score1, pathOb23Grab1P2, pathOb23Grab2PG2,
             pathOb23Score2, pathOb23Grab3, pathOb23GrabPPG3, pathOb23Score3, pathOb23Park;
 
@@ -227,10 +230,21 @@ public class CloseBlueAuto extends OpMode{
 
     public void buildPaths(int obNum){
         setChainNum(obNum);
+
+        // Define a transition pose that works well for moving from scanTagPose
+        // back into the field for the first grab/score.
+        // For a Close Blue Auto, this might be a point further into the field.
+        // Let's use the first grab position as the target for the transition path.
+
         if (obNum == GPP_ID){
+            pathOb21Transition = fol.pathBuilder()
+                    .addPath(new BezierLine(scanTagPose, Ob21Grab1GP1)) // Direct move from scan to first grab
+                    .setLinearHeadingInterpolation(scanTagPose.getHeading(), Ob21Grab1GP1.getHeading())
+                    .build();
+
             pathOb21Grab1GP1 = fol.pathBuilder()
-                    .addPath(new BezierCurve(preScorePose, Ob21Grab1GP1CP, Ob21Grab1GP1))
-                    .setLinearHeadingInterpolation(preScorePose.getHeading(), Ob21Grab1GP1.getHeading())
+                    .addPath(new BezierCurve(Ob21Grab1GP1, Ob21Grab1GP1CP, Ob21Grab1GP1))
+                    .setLinearHeadingInterpolation(Ob21Grab1GP1.getHeading(), Ob21Grab1GP1.getHeading())
                     .build();
 
             pathOb21Grab2P1 = fol.pathBuilder()
@@ -242,6 +256,7 @@ public class CloseBlueAuto extends OpMode{
                     .addPath(new BezierLine(Ob21Grab2P1, Ob21Score1))
                     .setLinearHeadingInterpolation(Ob21Grab2P1.getHeading(), Ob21Score1.getHeading())
                     .build();
+
 
             pathOb21Grab1G2 = fol.pathBuilder()
                     .addPath(new BezierCurve(Ob21Score1, Ob21Grab1G2CP, Ob21Grab1G2))
@@ -279,16 +294,17 @@ public class CloseBlueAuto extends OpMode{
                     .build();
         }
         else if (obNum == PGP_ID){
-            pathOb22PreScore = fol.pathBuilder()
-                    .addPath(new BezierLine(startPose, preScorePose))
-                    .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
+            pathOb22Transition = fol.pathBuilder()
+                    .addPath(new BezierLine(scanTagPose, Ob22Grab1P1)) // Direct move from scan to first grab
+                    .setLinearHeadingInterpolation(scanTagPose.getHeading(), Ob22Grab1P1.getHeading())
                     .setBrakingStrength(4)
                     .build();
 
             pathOb22Grab1P1 = fol.pathBuilder()
-                    .addPath(new BezierCurve(preScorePose, Ob22Grab1P1CP, Ob22Grab1P1))
-                    .setLinearHeadingInterpolation(preScorePose.getHeading(), Ob22Grab1P1.getHeading())
+                    .addPath(new BezierCurve(Ob22Grab1P1, Ob22Grab1P1CP, Ob22Grab1P1))
+                    .setLinearHeadingInterpolation(Ob22Grab1P1.getHeading(), Ob22Grab1P1.getHeading())
                     .build();
+            // NOTE: The previous line is redundant since it moves from Ob22Grab1P1 to itself.
 
             pathOb22Grab2GP1 = fol.pathBuilder()
                     .addPath(new BezierCurve(Ob22Grab1P1, Ob22Grab2GP1CP, Ob22Grab2GP1))
@@ -336,16 +352,17 @@ public class CloseBlueAuto extends OpMode{
                     .build();
         }
         else if (obNum == PPG_ID){
-            pathOb23PreScore = fol.pathBuilder()
-                    .addPath(new BezierLine(startPose, preScorePose))
-                    .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
+            pathOb23Transition = fol.pathBuilder()
+                    .addPath(new BezierLine(scanTagPose, Ob23Grab1PP1)) // Direct move from scan to first grab
+                    .setLinearHeadingInterpolation(scanTagPose.getHeading(), Ob23Grab1PP1.getHeading())
                     .setBrakingStrength(4)
                     .build();
 
             pathOb23Grab1PP1 = fol.pathBuilder()
-                    .addPath(new BezierCurve(preScorePose, Ob23Grab1PP1CP, Ob23Grab1PP1))
-                    .setLinearHeadingInterpolation(preScorePose.getHeading(), Ob23Grab1PP1.getHeading())
+                    .addPath(new BezierCurve(Ob23Grab1PP1, Ob23Grab1PP1CP, Ob23Grab1PP1))
+                    .setLinearHeadingInterpolation(Ob23Grab1PP1.getHeading(), Ob23Grab1PP1.getHeading())
                     .build();
+            // NOTE: The previous line is redundant since it moves from Ob23Grab1PP1 to itself.
 
             pathOb23Grab2G1 = fol.pathBuilder()
                     .addPath(new BezierCurve(Ob23Grab1PP1, Ob23Grab2G1CP, Ob23Grab2G1))
@@ -404,428 +421,383 @@ public class CloseBlueAuto extends OpMode{
 
     public void autonomousPathUpdate(){
 
-            if (!tagFound) {
-                switch (pathState) {
-                    // Edited so it runs to the first pose and scores preloads
-                    case -3:
-                        if (!fol.isBusy() && shootTimerCount == -1){
 
-                            fol.followPath(fol.pathBuilder()
-                                    .addPath(new BezierLine(startPose, preScorePose))
-                                    .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
-                                    .setBrakingStrength(4)
-                                    .build());
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
+        if (!tagFound) {
+            switch (pathState) {
+                case -4:
+                    // Path from startPose to preScorePose
+                    if (!fol.isBusy()){
+                        fol.followPath(fol.pathBuilder()
+                                .addPath(new BezierLine(startPose, preScorePose))
+                                .setLinearHeadingInterpolation(startPose.getHeading(), preScorePose.getHeading())
+                                .setBrakingStrength(4)
+                                .build());
+                        setPathState(-3);
+                    }
+                    break;
+
+                case -3:
+                    if (!fol.isBusy()) {
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
+
+                        if (shootTimerCount != 2) {
+                            shoot();
+                        } else {
+                            shootTimerCount = -1;
+                            setPathState(-2);
                         }
+                    }
+                    break;
 
-                        if (!fol.isBusy()) {
-                            if (shootTimerCount != 2)
-                                shoot();
-                            else {
-                                shootTimerCount = -1;
-                                setPathState(-2);
+                case -2:
+                    if (!fol.isBusy()) {
+                        fol.followPath(fol.pathBuilder()
+                                .addPath(new BezierLine(fol.getPose(), scanTagPose))
+                                .setLinearHeadingInterpolation(fol.getPose().getHeading(), scanTagPose.getHeading())
+                                .setBrakingStrength(4)
+                                .build());
+                        setPathState(-22);
+                    }
+                    break;
+
+                case -22:
+                    if (!fol.isBusy()) {
+                        for (LLResultTypes.FiducialResult tag : cam.getLatestResult().getFiducialResults()){
+                            if (tag.getFiducialId() == GPP_ID || tag.getFiducialId() == PGP_ID || tag.getFiducialId() == PPG_ID){
+                                buildPaths(tag.getFiducialId());
+                                tagFound = true;
+
+                                setPathState(0);
+                                break;
                             }
                         }
-                        break;
+                    }
+                    break;
 
-                    case -2:
-                        if (!fol.isBusy()) {
-                            fol.followPath(fol.pathBuilder()
-                                    .addPath(new BezierLine(fol.getPose(), scanTagPose))
-                                    .setLinearHeadingInterpolation(fol.getPose().getHeading(), scanTagPose.getHeading())
-                                    .setBrakingStrength(4)
-                                    .build());
-                        }
-
-                        if (!fol.isBusy()) {
-                            for (LLResultTypes.FiducialResult tag : cam.getLatestResult().getFiducialResults()){
-                                if (tag.getFiducialId() == GPP_ID || tag.getFiducialId() == PGP_ID || tag.getFiducialId() == PPG_ID){
-                                    buildPaths(tag.getFiducialId()); // Build paths based on result of the tag
-                                    foundTag = tag;
-                                    tagFound = true;
-                                    setPathState(-1);
-                                    break;
-                                }
-                            }
-                        }
-                        break;
-                }
-                return;
-            }
-
-        if(pathState == -1) {
-            if (!fol.isBusy()) {
-                fol.followPath(fol.pathBuilder()
-                        .addPath(new BezierLine(fol.getPose(), preScorePose))
-                        .setLinearHeadingInterpolation(fol.getPose().getHeading(), preScorePose.getHeading())
-                        .setBrakingStrength(4)
-                        .build());
-                setPathState(0);
+                default:
+                    setPathState(-4);
+                    break;
             }
             return;
         }
 
 
-            if (chainNum == 21 && tagFound) {
-                switch (pathState) {
-                        // This handles moving from scanTagPose to preScorePose and the preshooting
-                    case 0:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Grab1GP1);
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
-                            runBelt(-beltSpeed);
-                            setPathState(1);
-                        }
-                        break;
+        // Obelisk #21 GPP Path Chain (chainNum == 21)
+        if (chainNum == 21) {
+            switch (pathState) {
+                case 0:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Grab1GP1);
+                        setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
+                        runBelt(-beltSpeed);
+                        setPathState(1);
+                    }
+                    break;
+                case 1:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Grab2P1);
+                        setPathState(2);
+                    }
+                    break;
+                case 2:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Score1);
+                        runBelt(0);
+                        setPathState(21);
+                    }
+                    break;
 
-                    case 1:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Grab2P1);
-                            setPathState(2);
-                        }
-                        break;
+                case 21:
+                    if (!fol.isBusy()){
+                        setPathState(22);
+                    }
+                    break;
 
-                    case 2:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Score1);
-                            runBelt(0);
-                            setPathState(21);
-                        }
-                        break;
+                case 22:
+                    if (shootTimerCount != 2) {
+                        shoot();
+                    } else {
+                        shootTimerCount = -1;
+                        setPathState(3);
+                    }
+                    break;
 
-                    case 21:
-                        if (!fol.isBusy()){
-                            setPathState(22);
-                        }
-                        break;
+                case 3:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Grab1G2);
+                        runBelt(-beltSpeed);
+                        setPathState(4);
+                    }
+                    break;
 
-                    case 22:
-                        if (shootTimerCount != 2) {
-                            shoot();
-                        } else {
-                            shootTimerCount = -1;
-                            setPathState(3);
-                        }
-                        break;
+                case 4:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Grab2PP2);
+                        setPathState(5);
+                    }
+                    break;
 
-                    case 3:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Grab1G2);
-                            runBelt(-beltSpeed);
-                            setPathState(4);
-                        }
-                        break;
+                case 5:
+                    if (!fol.isBusy() && shootTimerCount == -1){
+                        fol.followPath(pathOb21Score2);
+                        runBelt(0);
+                    }
 
-                    case 4:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Grab2PP2);
-                            setPathState(5);
-                        }
-                        break;
+                    if (shootTimerCount != 2)
+                        shoot();
 
-                    case 5:
-                        if (!fol.isBusy() && shootTimerCount == -1){
-                            fol.followPath(pathOb21Score2);
-                            runBelt(0);
-                        }
+                    if (!fol.isBusy() && shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        setPathState(6);
+                    }
+                    break;
 
-                        if (shootTimerCount != 2)
-                            shoot();
+                case 6:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Grab3);
+                        setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 9, 135);
+                        setPathState(7);
+                    }
+                    break;
 
-                        if (!fol.isBusy() && shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            setPathState(6);
-                        }
-                        break;
+                case 7:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21GrabGPP3);
+                        runBelt(-beltSpeed);
+                        setPathState(8);
+                    }
+                    break;
 
-                    case 6:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Grab3);
-                            setShootPos(Ob21Score3.getX(), Ob21Score3.getY(), 9, 135);
-                            setPathState(7);
-                        }
-                        break;
+                case 8:
+                    if (!fol.isBusy() && shootTimerCount == -1){
+                        fol.followPath(pathOb21Score3);
+                        runBelt(0);
+                    }
 
-                    case 7:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21GrabGPP3);
-                            runBelt(-beltSpeed);
-                            setPathState(8);
-                        }
-                        break;
+                    if (shootTimerCount != 2)
+                        shoot();
 
-                    case 8:
-                        if (!fol.isBusy() && shootTimerCount == -1){
-                            fol.followPath(pathOb21Score3);
-                            runBelt(0);
-                        }
+                    if (!fol.isBusy() && shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        setPathState(9);
+                    }
+                    break;
 
-                        if (shootTimerCount != 2)
-                            shoot();
+                case 9:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb21Park);
+                        setPathState(10);
+                    }
+                    break;
 
-                        if (!fol.isBusy() && shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            setPathState(9);
-                        }
-                        break;
-
-                    case 9:
-                        if (!fol.isBusy()){
-                            fol.followPath(pathOb21Park);
-                            setPathState(10);
-                        }
-                        break;
-
-                    case 10:
-                        if (!fol.isBusy()) {
-                            setPathState(-2);
-                        }
-                        break;
-                }
-            }
-
-            else if (chainNum == 22 && tagFound){
-                switch (pathState) {
-                    case -1:
-                        if (!fol.isBusy() && timerCount == -1){
-                            // Path from scanTagPose to preScorePose
-                            fol.followPath(fol.pathBuilder()
-                                    .addPath(new BezierLine(fol.getPose(), preScorePose))
-                                    .setLinearHeadingInterpolation(fol.getPose().getHeading(), preScorePose.getHeading())
-                                    .setBrakingStrength(4)
-                                    .build());
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 9, 135);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(0);
-                        }
-                        break;
-
-                    case 0:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Grab1P1);
-                            setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 9, 135);
-                            runBelt(-beltSpeed);
-                            setPathState(1);
-                        }
-                        break;
-
-                    case 1:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Grab2GP1);
-                            setPathState(2);
-                        }
-                        break;
-
-                    case 2:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Score1);
-                            runBelt(0);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(3);
-                        }
-                        break;
-                    case 3:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Grab1PG2);
-                            runBelt(-beltSpeed);
-                            setPathState(4);
-                        }
-                        break;
-                    case 4:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Grab2P2);
-                            setPathState(5);
-                        }
-                        break;
-                    case 5:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Score2);
-                            runBelt(0);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(6);
-                        }
-                        break;
-                    case 6:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Grab3);
-                            setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 9, 135);
-                            setPathState(7);
-                        }
-                        break;
-                    case 7:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22GrabPGP3);
-                            runBelt(-beltSpeed);
-                            setPathState(8);
-                        }
-                        break;
-                    case 8:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Score3);
-                            runBelt(0);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(9);
-                        }
-                        break;
-                    case 9:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb22Park);
-                            setPathState(10);
-                        }
-                        break;
-
-                    case 10:
-                        if (!fol.isBusy()) {
-                            setPathState(-2);
-                        }
-                        break;
-                }
-            }
-            else if (chainNum == 23 && tagFound){
-                switch (pathState) {
-                    case -1:
-                        if (!fol.isBusy() && timerCount == -1){
-                            // Path from scanTagPose to preScorePose
-                            fol.followPath(fol.pathBuilder()
-                                    .addPath(new BezierLine(fol.getPose(), preScorePose))
-                                    .setLinearHeadingInterpolation(fol.getPose().getHeading(), preScorePose.getHeading())
-                                    .setBrakingStrength(4)
-                                    .build());
-                            setShootPos(Ob21Score1.getX(), Ob21Score1.getY(), 135, 135);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(0);
-                        }
-                        break;
-
-                    case 0:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Grab1PP1);
-                            setShootPos(Ob23Score1.getX(), Ob23Score1.getY(), 135, 135);
-                            runBelt(-beltSpeed);
-                            setPathState(1);
-                        }
-                        break;
-
-                    case 1:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Grab2G1);
-                            setPathState(2);
-                        }
-                        break;
-
-                    case 2:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Score1);
-                            runBelt(0);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(3);
-                        }
-                        break;
-                    case 3:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Grab1P2);
-                            runBelt(-beltSpeed);
-                            setPathState(4);
-                        }
-                        break;
-                    case 4:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Grab2PG2);
-                            setPathState(5);
-                        }
-                        break;
-                    case 5:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Score2);
-                            runBelt(0);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(6);
-                        }
-                        break;
-                    case 6:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Grab3);
-                            setPathState(7);
-                        }
-                        break;
-                    case 7:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23GrabPPG3);
-                            runBelt(-beltSpeed);
-                            setPathState(8);
-                        }
-                        break;
-                    case 8:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Score3);
-                            runBelt(0);
-                            shoot();
-                            timerCount++;
-                        }
-
-                        if (shootTimerCount == 2){
-                            shootTimerCount = -1;
-                            timerCount = -1;
-                            setPathState(9);
-                        }
-                        break;
-                    case 9:
-                        if (!fol.isBusy() && timerCount == -1){
-                            fol.followPath(pathOb23Park);
-                            setPathState(10);
-                        }
-                        break;
-
-                    case 10:
-                        if (!fol.isBusy()) {
-                            setPathState(-2);
-                        }
-                        break;
-                }
+                case 10:
+                    if (!fol.isBusy()) {
+                        setPathState(-2);
+                    }
+                    break;
             }
         }
+
+        // Obelisk #22 PGP Path Chain (chainNum == 22)
+        else if (chainNum == 22) {
+            switch (pathState) {
+                case 0:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb22Grab1P1);
+                        setShootPos(Ob22Score1.getX(), Ob22Score1.getY(), 9, 135);
+                        runBelt(-beltSpeed);
+                        setPathState(1);
+                    }
+                    break;
+                case 1:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb22Grab2GP1);
+                        setPathState(2);
+                    }
+                    break;
+                case 2:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Score1);
+                        runBelt(0);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(3);
+                    }
+                    break;
+                case 3:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab1PG2);
+                        runBelt(-beltSpeed);
+                        setPathState(4);
+                    }
+                    break;
+                case 4:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab2P2);
+                        setPathState(5);
+                    }
+                    break;
+                case 5:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Score2);
+                        runBelt(0);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(6);
+                    }
+                    break;
+                case 6:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Grab3);
+                        setShootPos(Ob22Score3.getX(), Ob22Score3.getY(), 9, 135);
+                        setPathState(7);
+                    }
+                    break;
+                case 7:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22GrabPGP3);
+                        runBelt(-beltSpeed);
+                        setPathState(8);
+                    }
+                    break;
+                case 8:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Score3);
+                        runBelt(0);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(9);
+                    }
+                    break;
+                case 9:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb22Park);
+                        setPathState(10);
+                    }
+                    break;
+
+                case 10:
+                    if (!fol.isBusy()) {
+                        setPathState(-2);
+                    }
+                    break;
+            }
+        }
+        // Obelisk #23 PPG Path Chain (chainNum == 23)
+        else if (chainNum == 23) {
+            switch (pathState) {
+                case 0: // Start Path Chain
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb23Grab1PP1); // Use the correct path for tag 23
+                        setShootPos(Ob23Score1.getX(), Ob23Score1.getY(), 9, 135);
+                        runBelt(-beltSpeed);
+                        setPathState(1);
+                    }
+                    break;
+                case 1:
+                    if (!fol.isBusy()){
+                        fol.followPath(pathOb23Grab2G1);
+                        setPathState(2);
+                    }
+                    break;
+                case 2:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Score1);
+                        runBelt(0);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(3);
+                    }
+                    break;
+                case 3:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab1P2);
+                        runBelt(-beltSpeed);
+                        setPathState(4);
+                    }
+                    break;
+                case 4:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab2PG2);
+                        setPathState(5);
+                    }
+                    break;
+                case 5:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Score2);
+                        runBelt(0);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(6);
+                    }
+                    break;
+                case 6:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Grab3);
+                        setPathState(7);
+                    }
+                    break;
+                case 7:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23GrabPPG3);
+                        runBelt(-beltSpeed);
+                        setPathState(8);
+                    }
+                    break;
+                case 8:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Score3);
+                        runBelt(0);
+                        shoot();
+                        timerCount++;
+                    }
+
+                    if (shootTimerCount == 2){
+                        shootTimerCount = -1;
+                        timerCount = -1;
+                        setPathState(9);
+                    }
+                    break;
+                case 9:
+                    if (!fol.isBusy() && timerCount == -1){
+                        fol.followPath(pathOb23Park);
+                        setPathState(10);
+                    }
+                    break;
+
+                case 10:
+                    if (!fol.isBusy()) {
+                        setPathState(-2);
+                    }
+                    break;
+            }
+        }
+    }
 
 
     private void setChainNum(int num){
@@ -847,7 +819,7 @@ public class CloseBlueAuto extends OpMode{
         double dist = (Math.sqrt(Math.pow(fx - ix, 2) + Math.pow(fy - iy, 2)) / 40) * 1.3;
 
         // The angle and velocity are both calculated using the distance we found
-        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 45);
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 53.5);
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
 
         telemetry.addData("Distance", dist);
