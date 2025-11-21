@@ -97,10 +97,11 @@ public class TempCloseBlue extends OpMode{
 
     // TIMER VARS
     private ElapsedTime feedTimer;
-    private double ascendDur = 500;
-    private double feedDur = 400; // was 50
-    private double retDur = 1000;
-    private int feeding = 0;
+    private double beltDur= 600; // Was ascendDur at 500
+    private double feedDur = 500; // was 400
+    private double retDur = 100;
+    private int feeding = 2;
+    private int fcount = 0;
 
 
     // PATH CHAINS
@@ -353,8 +354,14 @@ public class TempCloseBlue extends OpMode{
             case 10:
                 if (!fol.isBusy() && pathState == 10){
                     fol.followPath(pathParkPose);
+                    setPathState(11);
                 }
                 break;
+
+            case 11:
+                if (fol.isBusy()){
+                    stop();
+                }
         }
     }
 
@@ -415,30 +422,23 @@ public class TempCloseBlue extends OpMode{
         elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
-    // shootTimerCount has to = -1 for it to reset to 0 here to move on in the function
     private void shoot(){
         if (shootTimerCount == -1) {
             shootTimer.reset();
             shootTimerCount = 0;
         }
 
-        if (shootTimer.milliseconds() < 1200 && shootTimerCount == 0 /* && shootPos == 1*/){
+        if (shootTimer.milliseconds() < 1200 && shootTimerCount == 0){
             ls.setVelocity(velToPow(shootVel));
             rs.setVelocity(velToPow(shootVel));
-//            rs.setPower(0.4882);
-//            ls.setPower(0.4882);
         }
-//        else if (shootTimer.milliseconds() < 1200 && shootTimerCount == 0 && shootPos == 2){
-//            ls.setPower(.504);
-//            rs.setPower(.504);
-//        }
         else if (shootTimerCount == 0){
             shootTimer.reset();
             feedTimer.reset();
             shootTimerCount = 1;
         }
-        // Changed the multiplier to 2 because we are grabbing 2 balls instead of 3
-        if (shootTimer.milliseconds() < (feedDur + ascendDur + retDur) * ballNum && shootTimerCount == 1){
+
+        if (shootTimer.milliseconds() < 6000 && fcount < 7 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)
@@ -447,7 +447,8 @@ public class TempCloseBlue extends OpMode{
         if (shootTimerCount == 2){
             ls.setVelocity(0);
             rs.setVelocity(0);
-            feeding = 0;
+            feeding = 2;
+            fcount = 0;
             ascension.setPower(0);
             runBelt(0);
             blocker.setPosition(1);
@@ -463,12 +464,13 @@ public class TempCloseBlue extends OpMode{
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 0){
             blocker.setPosition(0);
+            ascension.setPower(1);
             runBelt(0);
         }
-        else if (feedTimer.milliseconds() < ascendDur && feeding == 1){
-            ascension.setPower(1);
+        else if (feedTimer.milliseconds() < retDur && feeding == 1){
+            blocker.setPosition(1);
         }
-        else if (feedTimer.milliseconds() < retDur && feeding == 2) {
+        else if (feedTimer.milliseconds() < beltDur && feeding == 2) {
             blocker.setPosition(1);
             ascension.setPower(0);
             runBelt(-beltSpeed);
@@ -479,6 +481,7 @@ public class TempCloseBlue extends OpMode{
                     feeding = 0;
                 else
                     feeding++;
+                fcount++;
             }
             feedTimer.reset();
         }
