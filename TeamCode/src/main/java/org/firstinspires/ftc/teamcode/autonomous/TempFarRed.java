@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@Autonomous(name = "FarBlue", group = "autonomous")
-public class TempFarBlue extends OpMode{
+@Autonomous(name = "FarRed", group = "autonomous")
+public class TempFarRed extends OpMode{
 
     // PEDROPATHING VARS
 
@@ -35,19 +35,19 @@ public class TempFarBlue extends OpMode{
 
     // POSITIONS
 
-    private final Pose Start = new Pose(56, 9, Math.toRadians(90)); // STARTING POSITION
-    private final Pose PreScore = new Pose(60, 22, Math.toRadians(116)); // PRE-LOAD SCORING POSITION
-    private final Pose Grab1Set = new Pose(45, 34.4, Math.toRadians(0)); // POSITION
-    private final Pose Grab1 = new Pose(31, 34.4, Math.toRadians(0)); // POSITION
-    private final Pose Score1 = new Pose(60, 75, Math.toRadians(133.5)); // POSITION
-    private final Pose Score1CP = new Pose(60, 34.4, Math.toRadians(133.5)); // CONTROL POINT
-    private final Pose Grab2Set = new Pose(45, 60, Math.toRadians(0)); // POSITION
-    private final Pose Grab2 = new Pose(31, 60, Math.toRadians(0)); // POSITION
-    private final Pose Score2 = new Pose(60, 75, Math.toRadians(139)); // POSITION
-    private final Pose Grab3Set = new Pose(45, 84, Math.toRadians(0)); // POSITION
-    private final Pose Grab3 = new Pose(31, 84, Math.toRadians(0)); // POSITION
-    private final Pose Score3 = new Pose(60, 75, Math.toRadians(136)); // POSITION
-    private final Pose parkPose = new Pose(50, 65, Math.toRadians(139)); // PARKING POSITION
+    private final Pose Start = new Pose(88, 9, Math.toRadians(90)); // STARTING POSITION
+    private final Pose PreScore = new Pose(84, 22, Math.toRadians(64)); // PRE-LOAD SCORING POSITION
+    private final Pose Grab1Set = new Pose(99, 34.4, Math.toRadians(180)); // POSITION
+    private final Pose Grab1 = new Pose(113, 34.4, Math.toRadians(180)); // POSITION
+    private final Pose Score1 = new Pose(84, 75, Math.toRadians(46.5)); // POSITION
+    private final Pose Score1CP = new Pose(84, 34.4, Math.toRadians(46.5)); // CONTROL POINT
+    private final Pose Grab2Set = new Pose(99, 60, Math.toRadians(180)); // POSITION
+    private final Pose Grab2 = new Pose(113, 60, Math.toRadians(180)); // POSITION
+    private final Pose Score2 = new Pose(84, 75, Math.toRadians(41)); // POSITION
+    private final Pose Grab3Set = new Pose(99, 84, Math.toRadians(180)); // POSITION
+    private final Pose Grab3 = new Pose(113, 84, Math.toRadians(180)); // POSITION
+    private final Pose Score3 = new Pose(84, 75, Math.toRadians(44)); // POSITION
+    private final Pose parkPose = new Pose(94, 65, Math.toRadians(44)); // PARKING POSITION
 
     // SHOOTING VARS
 

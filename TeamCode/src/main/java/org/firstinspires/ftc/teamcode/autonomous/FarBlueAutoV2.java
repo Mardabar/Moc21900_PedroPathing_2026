@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@Autonomous(name = "FarBlueAutoV2", group = "autonomous")
+@Autonomous(name = "CDONT USE THIS", group = "autonomous")
 public class FarBlueAutoV2 extends OpMode{
 
     // PEDROPATHING VARS

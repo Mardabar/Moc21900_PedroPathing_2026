@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@Autonomous(name = "CloseBlueAuto", group = "autonomous")
+@Autonomous(name = "BDONT USE THIS", group = "autonomous")
 public class CloseBlueAuto extends OpMode{
 
     // PEDROPATHING VARS
