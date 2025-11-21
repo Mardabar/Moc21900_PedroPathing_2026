@@ -22,8 +22,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
-@Autonomous(name = "TempCloseBlue", group = "autonomous")
-public class TempCloseBlue extends OpMode{
+@Autonomous(name = "TempCloseRed", group = "autonomous")
+public class TempCloseRed extends OpMode{
 
     // PEDROPATHING VARS
 
@@ -46,17 +46,17 @@ public class TempCloseBlue extends OpMode{
 
     // POSITIONS
 
-    private final Pose startPose = new Pose(23, 125, Math.toRadians(144)); // STARTING POSITION
-    private final Pose preScorePose = new Pose(60, 100, Math.toRadians(144)); // PRE-LOAD SCORING POSITION
-    private final Pose row1Line = new Pose(44, 84, Math.toRadians(0)); // Position
+    private final Pose startPose = new Pose(23, 125, Math.toRadians(144)).mirror(); // STARTING POSITION
+    private final Pose preScorePose = new Pose(60, 100, Math.toRadians(144)).mirror(); // PRE-LOAD SCORING POSITION
+    private final Pose row1Line = new Pose(44, 84, Math.toRadians(0)).mirror(); // Position
 
-    private final Pose grabRow1 = new Pose(33, 84, Math.toRadians(0)); // Position
-    private final Pose scoreRow1 = new Pose(60, 75, Math.toRadians(135)); // Scoring
-    private final Pose row2Line = new Pose(44, 60, Math.toRadians(0)); // Position
-    private final Pose grabRow2 = new Pose(33, 60, Math.toRadians(0));
-    private final Pose scoreRow2 = new Pose(60, 75, Math.toRadians(135));
+    private final Pose grabRow1 = new Pose(33, 84, Math.toRadians(0)).mirror(); // Position
+    private final Pose scoreRow1 = new Pose(60, 75, Math.toRadians(135)).mirror(); // Scoring
+    private final Pose row2Line = new Pose(44, 60, Math.toRadians(0)).mirror(); // Position
+    private final Pose grabRow2 = new Pose(33, 60, Math.toRadians(0)).mirror();
+    private final Pose scoreRow2 = new Pose(60, 75, Math.toRadians(135)).mirror();
 
-    private final Pose parkPose = new Pose(39, 33, Math.toRadians(0)); // PARKING POSITION
+    private final Pose parkPose = new Pose(39, 33, Math.toRadians(0)).mirror(); // PARKING POSITION
 
 
 
@@ -229,101 +229,101 @@ public class TempCloseBlue extends OpMode{
 
     public void autonomousPathUpdate(){
 
-            switch (pathState) {
-                // Edited so it runs to the first pose and scores preloads
-                case -1:
-                    if (!fol.isBusy()){
-                        fol.followPath(pathPreScore);
-                        setShootPos(preScorePose.getX(), preScorePose.getY(), 9, 135);
-                        runBelt(0);
-                        setPathState(-2);
-                    }
-                    break;
+        switch (pathState) {
+            // Edited so it runs to the first pose and scores preloads
+            case -1:
+                if (!fol.isBusy()){
+                    fol.followPath(pathPreScore);
+                    setShootPos(preScorePose.getX(), preScorePose.getY(), 9, 135);
+                    runBelt(0);
+                    setPathState(-2);
+                }
+                break;
 
-                case -2:
-                    if (!fol.isBusy()){
-                        setPathState(-12);
-                    }
-                    break;
+            case -2:
+                if (!fol.isBusy()){
+                    setPathState(-12);
+                }
+                break;
 
-                case -12:
-                    if (shootTimerCount != 2)
-                        shoot();
-                    else {
-                        shootTimerCount = -1;
-                        setPathState(0);
-                    }
-                    break;
+            case -12:
+                if (shootTimerCount != 2)
+                    shoot();
+                else {
+                    shootTimerCount = -1;
+                    setPathState(0);
+                }
+                break;
 
-                case 0:
-                    if (!fol.isBusy() && pathState == 0) {
-                        fol.followPath(pathRow1Line);
-                        setShootPos(preScorePose.getX(), preScorePose.getY(), 9, 135);
-                        setPathState(1);
-                    }
-                    break;
+            case 0:
+                if (!fol.isBusy() && pathState == 0) {
+                    fol.followPath(pathRow1Line);
+                    setShootPos(preScorePose.getX(), preScorePose.getY(), 9, 135);
+                    setPathState(1);
+                }
+                break;
 
-                case 1:
-                    if (!fol.isBusy()) {
-                        fol.followPath(pathGrabRow1);
-                        runBelt(-beltSpeed);
-                        setPathState(2);
-                    }
-                    break;
+            case 1:
+                if (!fol.isBusy()) {
+                    fol.followPath(pathGrabRow1);
+                    runBelt(-beltSpeed);
+                    setPathState(2);
+                }
+                break;
 
-                case 2:
-                    if (!fol.isBusy()){
-                        fol.followPath(pathScoreRow1);
-                        setShootPos(scoreRow1.getX(), scoreRow1.getY(), 9, 135);
-                        runBelt(0);
-                        setPathState(3);
-                    }
-                    break;
+            case 2:
+                if (!fol.isBusy()){
+                    fol.followPath(pathScoreRow1);
+                    setShootPos(scoreRow1.getX(), scoreRow1.getY(), 9, 135);
+                    runBelt(0);
+                    setPathState(3);
+                }
+                break;
 
-                case 3:
-                    if (!fol.isBusy()){
-                        setPathState(4);
-                    }
-                    break;
+            case 3:
+                if (!fol.isBusy()){
+                    setPathState(4);
+                }
+                break;
 
-                case 4:
-                    if (shootTimerCount != 2)
-                        shoot();
-                    else {
-                        shootTimerCount = -1;
-                        setPathState(5);
-                    }
-                    break;
+            case 4:
+                if (shootTimerCount != 2)
+                    shoot();
+                else {
+                    shootTimerCount = -1;
+                    setPathState(5);
+                }
+                break;
 
-                case 5:
-                    if (!fol.isBusy() && pathState == 5){
-                        fol.followPath(pathRow2Line);
-                        runBelt(-beltSpeed);
-                        setShootPos(scoreRow2.getX(), scoreRow2.getY(), 9, 135);
-                        setPathState(6);
-                    }
-                    break;
-                case 6:
-                    if (!fol.isBusy()) {
-                        fol.followPath(pathGrabRow2);
-                        runBelt(-beltSpeed);
-                        setPathState(7);
-                    }
-                    break;
-                case 7:
-                    if (!fol.isBusy()){
-                        setPathState(8);
-                    }
-                    break;
-                case 8:
-                    if (shootTimerCount != 2)
-                        shoot();
-                    else {
-                        shootTimerCount = -1;
-                        setPathState(9);
-                    }
-                    break;
-            }
+            case 5:
+                if (!fol.isBusy() && pathState == 5){
+                    fol.followPath(pathRow2Line);
+                    runBelt(-beltSpeed);
+                    setShootPos(scoreRow2.getX(), scoreRow2.getY(), 9, 135);
+                    setPathState(6);
+                }
+                break;
+            case 6:
+                if (!fol.isBusy()) {
+                    fol.followPath(pathGrabRow2);
+                    runBelt(-beltSpeed);
+                    setPathState(7);
+                }
+                break;
+            case 7:
+                if (!fol.isBusy()){
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                if (shootTimerCount != 2)
+                    shoot();
+                else {
+                    shootTimerCount = -1;
+                    setPathState(9);
+                }
+                break;
+        }
     }
 
 
