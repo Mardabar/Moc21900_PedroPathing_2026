@@ -65,7 +65,7 @@ public class StraferMain extends LinearOpMode{
     private final double OVERSHOOT_VEL_MULT = 1.68;
     private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
-    private final int ELBOW_GEAR_RATIO = 4;
+    private final int ELBOW_GEAR_RATIO = 28;
     private final double MAX_HEIGHT = 1.4;
 
     private final double p = 0.021, i = 0.00001, d = 0.00011;

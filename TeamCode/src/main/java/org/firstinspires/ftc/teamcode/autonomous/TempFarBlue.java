@@ -75,9 +75,9 @@ public class TempFarBlue extends OpMode{
     private double openPos = 0.53;
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
-    private double feedDur = 500;
+    private double feedDur = 650;
     private double retDur = 100;
-    private double beltDur= 600;
+    private double beltDur= 650;
     private int feeding = 2;
     private int fcount = 0;
 
@@ -444,7 +444,7 @@ public class TempFarBlue extends OpMode{
             shootTimerCount = 1;
         }
 
-        if (shootTimer.milliseconds() < 6000 && fcount < 7 && shootTimerCount == 1){
+        if (shootTimer.milliseconds() < 8000 && fcount <= 6 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)
@@ -478,7 +478,7 @@ public class TempFarBlue extends OpMode{
         }
         else if (feedTimer.milliseconds() < beltDur && feeding == 2) {
             blocker.setPosition(1);
-            ascension.setPower(0);
+            ascension.setPower(1);
             runBelt(-beltSpeed);
         }
         else {
