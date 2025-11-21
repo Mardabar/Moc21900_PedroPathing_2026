@@ -62,8 +62,6 @@ public class StraferMain extends LinearOpMode{
 
     // SHOOTING VARS
 
-    private ShootSystem ss;
-
     private final double OVERSHOOT_VEL_MULT = 1.68;
     private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
@@ -145,8 +143,6 @@ public class StraferMain extends LinearOpMode{
 
         // Other Vars
 
-        ss = new ShootSystem("teleop");
-
         speed = mainSpeed;
         shootReady = false;
         shootPrep = false;
@@ -218,7 +214,7 @@ public class StraferMain extends LinearOpMode{
 
                         // MAIN DRIVER CONTROLS
 
-                        if (!ss.shootReady) {
+                        if (!shootReady) {
                             // This block allows the movement to snap in one direction if the driver seems to want to go in just one direction
                             if (Math.abs(gamepad1.left_stick_y) < snapPos && Math.abs(gamepad1.left_stick_x) > snapPos) {
                                 lStickPosX = gamepad1.left_stick_x;
@@ -278,10 +274,10 @@ public class StraferMain extends LinearOpMode{
                         }
 
                         // Shoots the ball when conditions are met
-                        if (gamepad2.a && ss.shootReady){
+                        if (gamepad2.a && shootReady){
                             shoot();
                         }
-                        else if (ss.shootReady){
+                        else if (shootReady){
                             resetBack();
                         }
 
@@ -296,7 +292,7 @@ public class StraferMain extends LinearOpMode{
 
                         // MAIN DRIVER CONTROLS
 
-                        if (!ss.shootReady) {
+                        if (!shootReady) {
                             // This block allows the movement to snap in one direction if the driver seems to want to go in just one direction
                             if (Math.abs(gamepad1.left_stick_y) < snapPos && Math.abs(gamepad1.left_stick_x) > snapPos) {
                                 lStickPosX = gamepad1.left_stick_x;
@@ -357,9 +353,9 @@ public class StraferMain extends LinearOpMode{
                         }
 
                         // Shoots the ball when conditions are met
-                        if (gamepad1.a && ss.shootReady)
+                        if (gamepad1.a && shootReady)
                             shoot();
-                        else if (ss.shootReady)
+                        else if (shootReady)
                             resetBack();
 
                         break;
@@ -439,7 +435,7 @@ public class StraferMain extends LinearOpMode{
                 double angle = 25.2 + res.getTargetYDegrees();
                 double tagDist = (0.646 / Math.tan(Math.toRadians(angle)));
 
-                ss.setShootPos(tagDist);
+                setShootPos(tagDist);
                 feeding = 0;
                 blocker.setPosition(1);
                 blockTimer.reset();
@@ -448,17 +444,17 @@ public class StraferMain extends LinearOpMode{
                 rs.setMotorEnable();
 
                 iSum = 0;
-                ss.shootPrep = true;
+                shootPrep = true;
             }
         }
     }
 
     private void shoot(){
-        shootRot = ss.getShootVel();
-        setElbowTarget(ss.getAngleEnc());
+        shootRot = velToRot(shootVel);
+        setElbowTarget(angleToEncoder(shootAngle));
 
-        telemetry.addData("Velocity", ss.getShootVel() / 2800);
-        telemetry.addData("Encoder Angle", ss.getAngleEnc());
+        telemetry.addData("Velocity", shootVel);
+        telemetry.addData("Encoder Angle", shootAngle);
         telemetry.update();
 
         // This section uses PID to control the angle the robot is facing towards the april tag
@@ -508,8 +504,42 @@ public class StraferMain extends LinearOpMode{
         rs.setMotorDisable();
 
         flysSpeedy = false;
-        ss.shootPrep = false;
-        ss.shootReady = false;
+        shootPrep = false;
+        shootReady = false;
+    }
+
+    public void setShootPos(double dist){
+        /* dist is the total distance the ball will travel until it hits the ground
+           it's multiplied by 1.3 because the ball will hit the goal first, so using the
+           equation, it'll be about 1 meter high (the height of the goal) when it hit our requested distance
+         */
+        dist *= 1.3;
+
+        // The angle and velocity are both calculated using the distance we found
+        shootAngle = ((distToAngle(dist) * OVERSHOOT_ANG_MULT) - 53.5);
+        shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
+
+        shootPrep = false;
+        shootReady = true;
+    }
+
+    public double distToAngle(double dist){
+        return Math.toDegrees(Math.atan(54.88 / (9.8 * dist)));
+    }
+
+    // This function translates angle to velocity using the already set maximum height
+    public double angleToVel(double angle){
+        return Math.sqrt((MAX_HEIGHT * 19.6) / Math.pow(Math.sin(Math.toRadians(angle)), 2));
+    }
+
+    // This function translates velocity to motor power specifically for 6000 RPM motors combined with 72 mm Gecko Wheels
+    public double velToRot(double vel){
+        return (vel / (7.2 * Math.PI)) * 2800;
+    }
+
+    // This function translates an angle in degrees to an encoder value on 223 RPM motors
+    public double angleToEncoder(double angle){
+        return angle * ANGLE_CONST * ELBOW_GEAR_RATIO;
     }
 
     private void setElbowTarget(double angle){
@@ -524,14 +554,14 @@ public class StraferMain extends LinearOpMode{
     }
 
     private void feedLauncher(){
-        if (feedTimer.milliseconds() < ss.getFeedDur() && feeding == 0){
+        if (feedTimer.milliseconds() < feedDur && feeding == 0){
             blocker.setPosition(0);
             runBelt(0);
         }
-        else if (feedTimer.milliseconds() < ss.getAscendDur() && feeding == 1){
+        else if (feedTimer.milliseconds() < ascendDur && feeding == 1){
             ascension.setPower(1);
         }
-        else if (feedTimer.milliseconds() < ss.getRetDur() && feeding == 2) {
+        else if (feedTimer.milliseconds() < retDur && feeding == 2) {
             blocker.setPosition(1);
             ascension.setPower(0);
             runBelt(-beltSpeed);
