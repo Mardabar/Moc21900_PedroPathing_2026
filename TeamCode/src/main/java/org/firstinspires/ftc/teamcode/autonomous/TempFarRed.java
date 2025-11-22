@@ -75,9 +75,9 @@ public class TempFarRed extends OpMode{
     private double openPos = 0.53;
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
-    private double feedDur = 5;
-    private double ascendDur = 500;
-    private double retDur = 600;
+    private double feedDur = 650;
+    private double retDur = 100;
+    private double beltDur = 650;
     private int feeding = 2;
     private int fcount = 0;
 
@@ -247,7 +247,7 @@ public class TempFarRed extends OpMode{
             case 1:
                 if (!fol.isBusy()) {
                     fol.followPath(pathGrab1);
-                    fol.setMaxPower(0.35);
+                    fol.setMaxPower(0.32);
                     runBelt(-beltSpeed);
                     setPathState(2);
                 }
@@ -287,7 +287,7 @@ public class TempFarRed extends OpMode{
             case 4:
                 if (!fol.isBusy()) {
                     fol.followPath(pathGrab2);
-                    fol.setMaxPower(0.3);
+                    fol.setMaxPower(0.32);
                     runBelt(-beltSpeed);
                     setPathState(5);
                 }
@@ -328,7 +328,7 @@ public class TempFarRed extends OpMode{
                 if (!fol.isBusy()) {
                     fol.followPath(pathGrab3);
                     runBelt(-beltSpeed);
-                    fol.setMaxPower(0.3);
+                    fol.setMaxPower(0.32);
                     setPathState(8);
                 }
                 break;
@@ -444,7 +444,7 @@ public class TempFarRed extends OpMode{
             shootTimerCount = 1;
         }
 
-        if (shootTimer.milliseconds() < 6000 && fcount < 7 && shootTimerCount == 1){
+        if (shootTimer.milliseconds() < 8000 && fcount <= 6 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)
@@ -470,27 +470,24 @@ public class TempFarRed extends OpMode{
     private void feedLauncher(){
         if (feedTimer.milliseconds() < feedDur && feeding == 0){
             blocker.setPosition(0);
+            ascension.setPower(1);
             runBelt(0);
         }
-        else if (feedTimer.milliseconds() < ascendDur && feeding == 1){
-            ascension.setPower(1);
-            blocker.setPosition(0);
-        }
-        else if (feedTimer.milliseconds() < retDur && feeding == 2) {
+        else if (feedTimer.milliseconds() < retDur && feeding == 1){
             blocker.setPosition(1);
-            ascension.setPower(0);
+        }
+        else if (feedTimer.milliseconds() < beltDur && feeding == 2) {
+            blocker.setPosition(1);
+            ascension.setPower(1);
             runBelt(-beltSpeed);
         }
         else {
             if (ls.getVelocity() >= velToPow(shootVel) - 30 && rs.getVelocity() >= velToPow(shootVel) - 30) {
-                if (feeding == 2) {
+                if (feeding == 2)
                     feeding = 0;
-                    fcount++;
-                }
-                else {
+                else
                     feeding++;
-                    fcount++;
-                }
+                fcount++;
             }
             feedTimer.reset();
         }

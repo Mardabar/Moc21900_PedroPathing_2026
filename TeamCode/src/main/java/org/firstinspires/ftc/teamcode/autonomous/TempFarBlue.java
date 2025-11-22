@@ -247,7 +247,7 @@ public class TempFarBlue extends OpMode{
             case 1:
                 if (!fol.isBusy()) {
                     fol.followPath(pathGrab1);
-                    fol.setMaxPower(0.35);
+                    fol.setMaxPower(0.32);
                     runBelt(-beltSpeed);
                     setPathState(2);
                 }
@@ -287,7 +287,7 @@ public class TempFarBlue extends OpMode{
             case 4:
                 if (!fol.isBusy()) {
                     fol.followPath(pathGrab2);
-                    fol.setMaxPower(0.3);
+                    fol.setMaxPower(0.32);
                     runBelt(-beltSpeed);
                     setPathState(5);
                 }
@@ -328,7 +328,7 @@ public class TempFarBlue extends OpMode{
                 if (!fol.isBusy()) {
                     fol.followPath(pathGrab3);
                     runBelt(-beltSpeed);
-                    fol.setMaxPower(0.3);
+                    fol.setMaxPower(0.32);
                     setPathState(8);
                 }
                 break;
