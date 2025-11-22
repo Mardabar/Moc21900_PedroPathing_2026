@@ -355,6 +355,11 @@ public class TempCloseBlue extends OpMode{
                     fol.followPath(pathParkPose);
                 }
                 break;
+
+            case 11:
+                if(fol.isBusy()){
+                    setPathState(-67);
+                }
         }
     }
 
