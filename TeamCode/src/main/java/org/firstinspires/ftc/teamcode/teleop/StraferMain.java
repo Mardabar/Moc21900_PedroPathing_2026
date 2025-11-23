@@ -62,7 +62,7 @@ public class StraferMain extends LinearOpMode{
 
     // SHOOTING VARS
 
-    private final double OVERSHOOT_VEL_MULT = 1.68;
+    private final double OVERSHOOT_VEL_MULT = 1.675;
     private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
     private final int ELBOW_GEAR_RATIO = 28;
@@ -376,10 +376,10 @@ public class StraferMain extends LinearOpMode{
                         else
                             runBelt(0);
 
-                        if (gamepad1.a){
+                        if (gamepad2.a){
                             ascension.setPower(1);
                         }
-                        else if (gamepad2.b){
+                        else if (gamepad2.b || gamepad1.a){
                             ascension.setPower(-1);
                         }
                         else {
@@ -459,11 +459,11 @@ public class StraferMain extends LinearOpMode{
 
         // This section uses PID to control the angle the robot is facing towards the april tag
         if (gamepad1.left_bumper){
-            lb.setPower(turnMult * gamepad1.right_stick_x * -speed);
-            rb.setPower(turnMult * gamepad1.right_stick_x * speed);
+            lb.setPower((turnMult * gamepad1.right_stick_x * -speed) + (speed * gamepad1.left_stick_x) + (speed * gamepad1.left_stick_y));
+            rb.setPower((turnMult * gamepad1.right_stick_x * speed) + (-speed * gamepad1.left_stick_x) + (speed * gamepad1.left_stick_y));
 
-            lf.setPower(turnMult * gamepad1.right_stick_x * -speed);
-            rf.setPower(turnMult * gamepad1.right_stick_x * speed);
+            lf.setPower((turnMult * gamepad1.right_stick_x * -speed) + (-speed * lStickPosX) + (speed * lStickPosY));
+            rf.setPower((turnMult * gamepad1.right_stick_x * speed) + (speed * lStickPosX) + (speed * lStickPosY));
         }
         else {
             camPic = cam.getLatestResult();

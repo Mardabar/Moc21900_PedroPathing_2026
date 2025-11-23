@@ -38,14 +38,14 @@ public class TempFarRed extends OpMode{
     private final Pose Start = new Pose(88, 9, Math.toRadians(90)); // STARTING POSITION
     private final Pose PreScore = new Pose(84, 22, Math.toRadians(64)); // PRE-LOAD SCORING POSITION
     private final Pose Grab1Set = new Pose(99, 34.4, Math.toRadians(180)); // POSITION
-    private final Pose Grab1 = new Pose(113, 34.4, Math.toRadians(180)); // POSITION
+    private final Pose Grab1 = new Pose(124, 34.4, Math.toRadians(180)); // POSITION
     private final Pose Score1 = new Pose(84, 75, Math.toRadians(46.5)); // POSITION
     private final Pose Score1CP = new Pose(84, 34.4, Math.toRadians(46.5)); // CONTROL POINT
     private final Pose Grab2Set = new Pose(99, 60, Math.toRadians(180)); // POSITION
-    private final Pose Grab2 = new Pose(113, 60, Math.toRadians(180)); // POSITION
+    private final Pose Grab2 = new Pose(124, 60, Math.toRadians(180)); // POSITION
     private final Pose Score2 = new Pose(84, 75, Math.toRadians(41)); // POSITION
     private final Pose Grab3Set = new Pose(99, 84, Math.toRadians(180)); // POSITION
-    private final Pose Grab3 = new Pose(113, 84, Math.toRadians(180)); // POSITION
+    private final Pose Grab3 = new Pose(124, 84, Math.toRadians(180)); // POSITION
     private final Pose Score3 = new Pose(84, 75, Math.toRadians(44)); // POSITION
     private final Pose parkPose = new Pose(94, 65, Math.toRadians(44)); // PARKING POSITION
 
@@ -56,7 +56,7 @@ public class TempFarRed extends OpMode{
     private DcMotor belt;
     private DcMotor elbow;
 
-    private final double OVERSHOOT_VEL_MULT = 1.622;
+    private final double OVERSHOOT_VEL_MULT = 1.5;
     private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
     private final int ELBOW_GEAR_RATIO = 4;
@@ -76,9 +76,9 @@ public class TempFarRed extends OpMode{
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
     private double feedDur = 650;
-    private double retDur = 100;
-    private double beltDur = 650;
-    private int feeding = 2;
+    private double retDur = 300;
+    private double beltDur = 450;
+    private int feeding = 0;
     private int fcount = 0;
 
     // PATH CHAIN
@@ -121,7 +121,6 @@ public class TempFarRed extends OpMode{
         elbow.setPower(elbowSpeed);
 
         blocker.scaleRange(feedPos, openPos);
-        blocker.setPosition(1);
 
         // TIMER INIT
 
@@ -204,8 +203,8 @@ public class TempFarRed extends OpMode{
                 .build();
 
         pathPark = fol.pathBuilder()
-                .addPath(new BezierLine(Score3, parkPose))
-                .setLinearHeadingInterpolation(Score3.getHeading(), parkPose.getHeading())
+                .addPath(new BezierLine(Score2, parkPose))
+                .setLinearHeadingInterpolation(Score2.getHeading(), parkPose.getHeading())
                 .build();
     }
 
@@ -313,7 +312,7 @@ public class TempFarRed extends OpMode{
                     shoot();
                 else {
                     shootTimerCount = -1;
-                    setPathState(6);
+                    setPathState(9);
                 }
                 break;
 
@@ -444,7 +443,7 @@ public class TempFarRed extends OpMode{
             shootTimerCount = 1;
         }
 
-        if (shootTimer.milliseconds() < 8000 && fcount <= 6 && shootTimerCount == 1){
+        if (shootTimer.milliseconds() < 8000 && fcount <= 8 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)

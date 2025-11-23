@@ -38,7 +38,7 @@ public class TempFarBlue extends OpMode{
     private final Pose Start = new Pose(56, 9, Math.toRadians(90)); // STARTING POSITION
     private final Pose PreScore = new Pose(60, 22, Math.toRadians(116)); // PRE-LOAD SCORING POSITION
     private final Pose Grab1Set = new Pose(45, 34.4, Math.toRadians(0)); // POSITION
-    private final Pose Grab1 = new Pose(31, 34.4, Math.toRadians(0)); // POSITION
+    private final Pose Grab1 = new Pose(20, 34.4, Math.toRadians(0)); // POSITION
     private final Pose Score1 = new Pose(60, 75, Math.toRadians(133.5)); // POSITION
     private final Pose Score1CP = new Pose(60, 34.4, Math.toRadians(133.5)); // CONTROL POINT
     private final Pose Grab2Set = new Pose(45, 60, Math.toRadians(0)); // POSITION
@@ -56,7 +56,7 @@ public class TempFarBlue extends OpMode{
     private DcMotor belt;
     private DcMotor elbow;
 
-    private final double OVERSHOOT_VEL_MULT = 1.622;
+    private final double OVERSHOOT_VEL_MULT = 1.63;
     private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
     private final int ELBOW_GEAR_RATIO = 4;
@@ -76,9 +76,9 @@ public class TempFarBlue extends OpMode{
     private double feedPos = 0.02;
     private ElapsedTime feedTimer;
     private double feedDur = 650;
-    private double retDur = 100;
-    private double beltDur= 650;
-    private int feeding = 2;
+    private double retDur = 300;
+    private double beltDur = 450;
+    private int feeding = 0;
     private int fcount = 0;
 
     // PATH CHAIN
@@ -121,7 +121,6 @@ public class TempFarBlue extends OpMode{
         elbow.setPower(elbowSpeed);
 
         blocker.scaleRange(feedPos, openPos);
-        blocker.setPosition(1);
 
         // TIMER INIT
 
@@ -204,8 +203,8 @@ public class TempFarBlue extends OpMode{
                 .build();
 
         pathPark = fol.pathBuilder()
-                .addPath(new BezierLine(Score3, parkPose))
-                .setLinearHeadingInterpolation(Score3.getHeading(), parkPose.getHeading())
+                .addPath(new BezierLine(Score2, parkPose))
+                .setLinearHeadingInterpolation(Score2.getHeading(), parkPose.getHeading())
                 .build();
     }
 
@@ -313,7 +312,7 @@ public class TempFarBlue extends OpMode{
                     shoot();
                 else {
                     shootTimerCount = -1;
-                    setPathState(6);
+                    setPathState(9);
                 }
                 break;
 
@@ -444,7 +443,7 @@ public class TempFarBlue extends OpMode{
             shootTimerCount = 1;
         }
 
-        if (shootTimer.milliseconds() < 8000 && fcount <= 6 && shootTimerCount == 1){
+        if (shootTimer.milliseconds() < 8000 && fcount <= 8 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)
