@@ -22,9 +22,11 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -46,15 +48,15 @@ public class StraferOpV2 extends LinearOpMode {
     private DcMotor rb;
     private DcMotor lf;
     private DcMotor rf;
-    private DcMotor ls;
-    private DcMotor rs;
+    private DcMotorEx ls;
+    private DcMotorEx rs;
     private DcMotor belt;
-    private DcMotor elbow;
+    private DcMotorEx elbow;
 
-    private CRServo launchServo;
+    private CRServo ascension;
+    private Servo blocker;
     private CRServo br;
     private CRServo bl;
-    private Servo blocker;
 
     // Other variables we'll need
     private String shootMode = "Middle";
@@ -62,7 +64,7 @@ public class StraferOpV2 extends LinearOpMode {
     private double speed = 0.5;
 
     // Holds the power of the motor so it doesn't get messed up with the if statement here
-    private double powerSetpoint = middlePower;
+    private double currentPower = middlePower;
 
 
     // Will be used to update and change in real time until I find proper values for each individual shootMode
@@ -72,8 +74,17 @@ public class StraferOpV2 extends LinearOpMode {
     public static double boxPower = 0.40;     // Default power for Box D-Pad Left
 
 
-
     // Taking and storing robot pos from auto
+
+    private double elbowSpeed = 0.4;
+
+    private double shootRot;
+    private ElapsedTime feedTimer, blockTimer;
+
+    private double feedDur = 200;
+    private double ascendDur = 900;
+    private double retDur = 600;
+    private int feeding;
 
     private Follower follower;
 
@@ -82,159 +93,117 @@ public class StraferOpV2 extends LinearOpMode {
 
 
         // Motors are set to each of its variables
-        rf = hardwareMap.get(DcMotor.class,"rf");
-        lf = hardwareMap.get(DcMotor.class,"lf");
-        rb = hardwareMap.get(DcMotor.class,"rb");
-        lb = hardwareMap.get(DcMotor.class,"lb");
-        rs = hardwareMap.get(DcMotor.class,"rs");
-        ls = hardwareMap.get(DcMotor.class,"ls");
-        belt = hardwareMap.get(DcMotor.class, "belt");
-        elbow = hardwareMap.get(DcMotor.class, "elbow");
-        
+        rf = hardwareMap.get(DcMotor.class, "rf");
+        lf = hardwareMap.get(DcMotor.class, "lf");
+        rb = hardwareMap.get(DcMotor.class, "rb");
+        lb = hardwareMap.get(DcMotor.class, "lb");
+        rs = hardwareMap.get(DcMotorEx.class, "rs");
+        ls = hardwareMap.get(DcMotorEx.class, "ls");
+        belt = hardwareMap.get(DcMotorEx.class, "belt");
+        elbow = hardwareMap.get(DcMotorEx.class, "elbow");
+
 
         // Zero power behaviors are set for the motors
-        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rb.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         ls.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rs.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        belt.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        elbow.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Motor direction is set for straight forward values prolly will have to change later
-        rf.setDirection(DcMotorSimple.Direction.REVERSE);
-        lf.setDirection(DcMotorSimple.Direction.FORWARD);
-        rb.setDirection(DcMotorSimple.Direction.REVERSE);
-        lb.setDirection(DcMotorSimple.Direction.FORWARD);
+        lb.setDirection(DcMotor.Direction.REVERSE);
+        rb.setDirection(DcMotor.Direction.FORWARD);
+        lf.setDirection(DcMotor.Direction.REVERSE);
+        rf.setDirection(DcMotor.Direction.FORWARD);
+        ls.setDirection(DcMotorEx.Direction.FORWARD);
+        rs.setDirection(DcMotorEx.Direction.REVERSE);
         belt.setDirection(DcMotor.Direction.FORWARD);
-        elbow.setDirection(DcMotor.Direction.REVERSE);
+        elbow.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Stopping and resetting encoders in erm the uh other motors
-        rs.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        ls.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-
-        elbow.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elbow.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        elbow.setPower(elbowSpeed);
 
-        
-        // Servo naming 
+
+        ls.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        rs.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+
+        // Servo naming and scale ranges
         blocker = hardwareMap.get(Servo.class, "blocker");
-        launchServo = hardwareMap.get(CRServo.class, "launchServo");
+        ascension = hardwareMap.get(CRServo.class, "ascension");
         br = hardwareMap.get(CRServo.class, "br");
         bl = hardwareMap.get(CRServo.class, "bl");
 
-        blocker.scaleRange(0.0, 1.0);
-        blocker.setPosition(0.54);
+        blocker.scaleRange(0.02, 0.53);
+        blocker.setPosition(1);
 
-
-        // Variables needed for pedro and updating position on the field
-        follower = Constants.createFollower(hardwareMap);
-
-        // Starting pos after teleop
-        follower.setStartingPose(new Pose(0,0,0));
-
-
+        // Timers
+        blockTimer = new ElapsedTime();
+        feedTimer = new ElapsedTime();
 
 
         // Robot waits for the opmode to be activated
         waitForStart();
 
 
-        while (opModeIsActive()){
+        while (opModeIsActive()) {
 
-            /*follower = Constants.createFollower(hardwareMap);
+            // Controls drive motors
+            drive();
 
-            // If the autonomous ran it will use the end position other wise itll be set to (0, 0, 0).
-            follower.setStartingPose(RobotPoseStorage.currentPose); */
+            // Apply's power to motors
+            updateLaunchers();
 
+            // Prints stuff to station
+            updatePos();
 
-                
-            lb.setPower(gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-            rb.setPower(gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+            // Function that launches za boals
+            ballToLaunch();
 
-            lf.setPower(gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
-            rf.setPower(gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+            // Power mode swap
+            powerSwap();
 
-            if (gamepad1.leftBumperWasPressed())
-                speed = .45;
-            else if (gamepad1.rightBumperWasPressed())
-                speed = 1.15;
-            else
-                speed = .6;
+            // feeding system
+            feedLauncher();
 
 
-            // Funtion for controlling the belt and servo intake stuff 
-            if (gamepad2.b) {
-                belt.setPower(.5);
-                br.setPower(1);
-                bl.setPower(-1);
-            } else if (gamepad2.x) {
-                belt.setPower(-.5);
-                br.setPower(-1);
-                bl.setPower(1);
-            } else {
-                belt.setPower(0);
-                br.setPower(0);
-                bl.setPower(0);
-            }
 
-            // New servo Gabe added that is in the launcher.
-            if (gamepad1.y) {
-                launchServo.setPower(1);
-            } else if (gamepad1.x) {
-                launchServo.setPower(-1);
-            } else {
-                launchServo.setPower(0);
-            }
-            // Function for new servo Gabe added
-            if (gamepad2.y)
-                blocker.setPosition(0.1);
-            else
-                blocker.setPosition(.54);
-            
-            // Here is the mode swap chunk thing that will need alot of testing on the field
+//            // New servo Gabe added that is in the launcher.
+//            if (gamepad1.y) {
+//                ascension.setPower(1);
+//            } else {
+//                ascension.setPower(0);
+//            }
+//            // Function for new servo Gabe added
+//            if (gamepad2.y)
+//                blocker.setPosition(0.1);
+//            else
+//                blocker.setPosition(.54);
 
-            // When robot is near middle of shooting area
-            if (gamepad2.dpad_up){
-                shootMode = "Middle";
-                powerSetpoint = middlePower /*.5*/;
-            }
-            // When robot is at the back of the field in the triangle box
-            // Power will need to be high here
-            else if (gamepad2.dpad_down){
-                shootMode = "Back";
-                powerSetpoint = backPower /*.75*/;
-            }
-            // When robot is at the tip of the shooting triangle box thingy
-            else if (gamepad2.dpad_right){
-                shootMode = "Top";
-                powerSetpoint = topPower /*.55*/;
-            }
-            // When robot is at the bottom of the lebron box thingy
-            // Relatively low power here
-            else if (gamepad2.dpad_left){
-                shootMode = "Box";
-                powerSetpoint = boxPower /*.3*/;
-            }
+
+
 
             // Stuff for controlling the elbow
-            /** ADD SERVO CODE HERE WHEN GABE GETS HIS DESIGN FINISHED */ 
-            if (gamepad2.left_trigger > 0.2){
+            /** ADD SERVO CODE HERE WHEN GABE GETS HIS DESIGN FINISHED */
+            if (gamepad2.left_trigger > 0.2) {
                 elbow.setPower(0.4);
-            } else if (gamepad2.right_trigger > 0.2){
+            } else if (gamepad2.right_trigger > 0.2) {
                 elbow.setPower(-0.4);
             } else {
-                elbow.setPower(0); 
+                elbow.setPower(0);
             }
 
 
-            
             // Function that turns the motors on and off
             if (gamepad2.a) {
                 // If Y is pressed sets the desired speed
-                launchPower = powerSetpoint;
+                launchPower = currentPower;
             } else {
-                // If Y is not pressed turn the motors off
                 launchPower = 0;
             }
 
@@ -244,21 +213,16 @@ public class StraferOpV2 extends LinearOpMode {
                 br.setPower(.5);
                 bl.setPower(-.5);
             } else if (gamepad2.right_bumper) {
+                // intake sucks out
                 belt.setPower(-.5);
                 br.setPower(-.5);
-                bl.setPower(.5 );
+                bl.setPower(.5);
             } else {
                 belt.setPower(0);
                 br.setPower(0);
                 bl.setPower(0);
             }
 
-            // Apply's power to motors
-            updateLaunchers();
-
-
-            // Prints stuff to station
-            updatePos();
 
 
         }
@@ -268,11 +232,11 @@ public class StraferOpV2 extends LinearOpMode {
 
 
     // Prints a bunch of values to driverstation
-    public void updatePos(){
+    public void updatePos() {
         follower.update();
 
         telemetry.addData("Motor goal power: ", launchPower);
-        //telemetry.addData("Motor actual power: ", ls.getPower());
+        telemetry.addData("Motor actual power: ", ls.getPower());
         telemetry.addData("Current pose: ", shootMode);
         telemetry.addData("X Position", follower.getPose().getX());
         telemetry.addData("Y Position", follower.getPose().getY());
@@ -283,44 +247,118 @@ public class StraferOpV2 extends LinearOpMode {
     }
 
     // Updates the motor shooting power and makes code easier to read up top
-    public void updateLaunchers(){
+    public void updateLaunchers() {
         rs.setPower(-launchPower);
         ls.setPower(launchPower);
     }
 
+    // SET ELBOW TARGET POSITION
+    private void setElbowTarget(double angle) {
+        elbow.setTargetPosition((int) angle);
+        elbow.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
 
-
-
-
-    // Heres a bunch of useful telemetry values that will be printed to the driver station
-
-    /** If this doesnt work prolly have to slap this inside the opmode is active loop */
-    /* public void updateValues(){
-        // Erm not 100% sure if the telemetry system will like what I do here so if not will be an easy change
-        // Gets the battery voltage and prints to driver station
-        double currentVoltage = getBatteryVoltage();
-        telemetry.addData("Current Voltage", "%.2f V", currentVoltage);
-        if (currentVoltage < 12.0) {
-            telemetry.addData("WARNING", "Battery voltage is low!");
+    // FEED BALL INTO LAUNCHER SYSTEM
+    // Not sure if I like the whole thing being automatic
+    private void feedLauncher(){
+        if (feedTimer.milliseconds() < feedDur && feeding == 0){
+            blocker.setPosition(0);
+            runBelt(0);
         }
-
-        telemetry.update();
-    } */
-
-
-    // I think im cooking here but it probably wont work :(
-    /** If this doesnt work prolly have to slap this inside the opmode is active loop */
-    /* private double getBatteryVoltage() {
-        double result = Double.POSITIVE_INFINITY;
-        // hardwareMap.voltageSensor is a collection of all voltage sensors like control hub, expansion hub, ect
-        for (VoltageSensor sensor : hardwareMap.voltageSensor) {
-            double voltage = sensor.getVoltage();
-            if (voltage > 0) {
-                result = Math.min(result, voltage);
-            }
+        else if (feedTimer.milliseconds() < ascendDur && feeding == 1){
+            ascension.setPower(1);
         }
-        return result;
-    } */
+        else if (feedTimer.milliseconds() < retDur && feeding == 2) {
+            blocker.setPosition(1);
+            ascension.setPower(0);
+            runBelt(-1);
+        }
+    }
+    
+    // SECONDARY BALL TO LAUNCH SYSTEM IF I DONT LIKE LEFIS
+    // Basically will just check for a previous condition to be met
+    public void ballToLaunch(){
+        // Starts off by setting the ball to be up in the launcher but not to the motors yet so the motors can reach thier desired power
+        if (gamepad1.aWasPressed()){
+            blocker.setPosition(0);
+            rs.setPower(currentPower);
+            ls.setPower(currentPower);
+        }
+        // Checks for the motor to be at the desired velocity, if it is then itl shoot the ball once
+        if (rs.getPower() == currentPower){
+            ascension.setPower(1);
+            feedTimer.reset();
+        }
+        // Sets everything to the state right before it, so it can then launch another ball right into the system
+        if (rs.getPower() == currentPower && ascension.getPower() == 1 && feedTimer.milliseconds() > 300){
+            ascension.setPower(0);
+            blocker.setPosition(1);
+        }
+    }
 
+
+
+    // RUN BELT FUNCTION{
+    private void runBelt(double speed) {
+        belt.setPower(speed);
+        br.setPower(speed);
+        bl.setPower(-speed);
+    }
+
+    
+    // SECONDARY BELT FUNCTION IF I DONT LIKE LEIFS
+    public void intakeSystem(){
+        if (gamepad2.right_bumper)
+            runBelt(1);
+        else if (gamepad2.left_bumper)
+            runBelt(-1);
+        else
+            runBelt(0);
+    }
+    
+    
+    // DRIVE CODE
+    public void drive(){
+        lb.setPower(gamepad1.right_stick_x * -speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+        rb.setPower(gamepad1.right_stick_x * speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+
+        lf.setPower(gamepad1.right_stick_x * -speed + -speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+        rf.setPower(gamepad1.right_stick_x * speed + speed * gamepad1.left_stick_x + speed * gamepad1.left_stick_y);
+
+        if (gamepad1.leftBumperWasPressed())
+            speed = .45;
+        else if (gamepad1.rightBumperWasPressed())
+            speed = 1.15;
+        else
+            speed = .6;
+    }
+
+    // Swap launch power function
+    public void powerSwap(){
+        /*** Here is the mode swap chunk thing that will need alot of testing on the field */
+
+        // When robot is near middle of shooting area
+        if (gamepad2.dpad_up) {
+            shootMode = "Middle";
+            currentPower = middlePower; // .5
+        }
+        // When robot is at the back of the field in the triangle box
+        // Power will need to be high here
+        else if (gamepad2.dpad_down) {
+            shootMode = "Back";
+            currentPower = backPower; // .75
+        }
+        // When robot is at the tip of the shooting triangle box thingy
+        else if (gamepad2.dpad_right) {
+            shootMode = "Top";
+            currentPower = topPower; // .55
+        }
+        // When robot is at the bottom of the lebron box thingy
+        // Relatively low power here
+        else if (gamepad2.dpad_left) {
+            shootMode = "Box";
+            currentPower = boxPower; // .3
+        }
+    }
 
 }
