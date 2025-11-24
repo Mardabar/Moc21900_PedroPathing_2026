@@ -35,6 +35,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 
+
+
 @Configurable
 @TeleOp(name = "StraferOpV2")
 public class StraferOpV2 extends LinearOpMode {

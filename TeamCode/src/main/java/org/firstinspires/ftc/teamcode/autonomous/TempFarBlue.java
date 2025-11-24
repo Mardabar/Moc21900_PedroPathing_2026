@@ -348,8 +348,8 @@ public class TempFarBlue extends OpMode{
                 break;
 
             case 82:
-                if (shootTimerCount != 2)
-                    shoot();
+                if (shootTimerCount != 2) {
+                    shoot(); }
                 else {
                     shootTimerCount = -1;
                     setPathState(9);

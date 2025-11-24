@@ -1,9 +1,12 @@
 package subsystems;
 
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 public class ShootSystem {
 
     private final String mode;
+
+    private DcMotorEx rs;
 
     // CONSTANTS
 
