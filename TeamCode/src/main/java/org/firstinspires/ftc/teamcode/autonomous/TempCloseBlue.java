@@ -57,10 +57,11 @@ public class TempCloseBlue extends OpMode{
     private final Pose row1Line1CP = new Pose(91,84.5); // CONTROL POINT
 
     private final Pose grabRow1 = new Pose(22.5, 84, Math.toRadians(0)); // Position
-    private final Pose scoreRow1 = new Pose(61, 78, Math.toRadians(134)); // Scoring
+    private final Pose scoreRow1 = new Pose(61, 78, Math.toRadians(132)); // Scoring
     private final Pose row2Line = new Pose(44.5, 60, Math.toRadians(0)); // Position
+    private final Pose row2LineCP = new Pose(85, 60);
     private final Pose grabRow2 = new Pose(22.5, 60, Math.toRadians(0));
-    private final Pose scoreRow2 = new Pose(61, 78, Math.toRadians(134));
+    private final Pose scoreRow2 = new Pose(61, 78, Math.toRadians(132));
 
     private final Pose parkPose = new Pose(50, 72, Math.toRadians(132)); // PARKING POSITION
 
@@ -105,8 +106,8 @@ public class TempCloseBlue extends OpMode{
 
     private double intakeDur = 700;
     private double feedDur = 500; // was 650
-    private double retDur = 600; // was 300???
-    private double beltDur = 450; // was 450
+    private double retDur = 300; // was 300???
+    private double beltDur = 350; // was 450, 250 gets closer for shooting but not intake wise.
     private int fcount = 0;
 
 
@@ -219,7 +220,7 @@ public class TempCloseBlue extends OpMode{
                 .build();
 
         pathGrabRow2 = fol.pathBuilder()
-                .addPath(new BezierLine(row2Line, grabRow2))
+                .addPath(new BezierCurve(row2Line, row2LineCP, grabRow2))
                 .setLinearHeadingInterpolation(row2Line.getHeading(), grabRow2.getHeading())
                 .build();
 
@@ -330,12 +331,12 @@ public class TempCloseBlue extends OpMode{
 
             case 6:
                 if (!fol.isBusy()) {
-                    intakeTimer.reset();
-                    if (intakeTimer.milliseconds() > intakeDur && !fol.isBusy()){
-                        runBelt(beltSpeed/2);
-                    } else {
-                        runBelt(0);
-                    }
+//                    intakeTimer.reset();
+//                    if (intakeTimer.milliseconds() > intakeDur && !fol.isBusy()){
+//                        runBelt(beltSpeed/2);
+//                    } else {
+//                        runBelt(0);
+//                    }
                     fol.setMaxPower(grabSpeed);
                     fol.followPath(pathGrabRow2);
                     runBelt(beltSpeed);
@@ -453,7 +454,7 @@ public class TempCloseBlue extends OpMode{
             shootTimerCount = 1;
         }
 
-        if (shootTimer.milliseconds() < 5000 && fcount <= 8 && shootTimerCount == 1){
+        if (shootTimer.milliseconds() < 9000 && fcount <= 8 && shootTimerCount == 1){
             feedLauncher();
         }
         else if (shootTimerCount == 1)
@@ -483,10 +484,10 @@ public class TempCloseBlue extends OpMode{
             runBelt(0);
         }
         else if (feedTimer.milliseconds() < retDur && feeding == 1){
-            blocker.setPosition(.55);
+            blocker.setPosition(1);
         }
         else if (feedTimer.milliseconds() < beltDur && feeding == 2) {
-            blocker.setPosition(.55);
+            blocker.setPosition(1);
             ascension.setPower(1);
             runBelt(beltSpeed);
         }
