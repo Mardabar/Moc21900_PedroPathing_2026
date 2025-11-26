@@ -26,7 +26,7 @@ import java.util.List;
         @Override
         public void runOpMode() {
 
-            cam = hardwareMap.get(Limelight3A.class, "cam");
+            cam = hardwareMap.get(Limelight3A.class, "limelight");
 
             // No clue what this does atm
             telemetry.setMsTransmissionInterval(11);

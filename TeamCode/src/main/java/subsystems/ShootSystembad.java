@@ -1,66 +1,33 @@
 package subsystems;
 
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
+public class ShootSystembad {
 
+    private final String mode;
 
-public class ShootSystem {
-
-    // NAMING MOTORS AND SERVOS
-    private DcMotor belt;
-    private DcMotorEx ls;
     private DcMotorEx rs;
-    private DcMotorEx elbow;
-    private CRServo ascension;
-    private Servo blocker;
-    private CRServo br;
-    private CRServo bl;
 
+    // CONSTANTS
 
-    // SHOOTING VARS
     private final double OVERSHOOT_VEL_MULT = 1.68;
     private final double OVERSHOOT_ANG_MULT = 1;
     private final double ANGLE_CONST = 2.08833333;
     private final int ELBOW_GEAR_RATIO = 4;
     private final double MAX_HEIGHT = 1.4;
+
+    // SHOOT VARS
+
     public boolean shootPrep;
     public boolean shootReady;
     private double shootAngle;
     private double shootVel;
-
 
     // FEEDING VARS
 
     private double feedDur = 200;
     private double ascendDur = 900;
     private double retDur = 600;
-
-
-
-    /*** Here we use HardwareMap hardwareMap as parameters because thats what the motors and servos fall under */
-    public ShootSystem(HardwareMap hardwareMap){
-        // Standard method for initializing motors and servos
-        ls = hardwareMap.get(DcMotorEx.class, "ls");
-        rs = hardwareMap.get(DcMotorEx.class, "rs");
-        belt = hardwareMap.get(DcMotor.class, "belt");
-        elbow = hardwareMap.get(DcMotorEx.class, "elbow");
-
-        ascension = hardwareMap.get(CRServo.class, "ascension");
-        blocker = hardwareMap.get(Servo.class, "blocker");
-        br = hardwareMap.get(CRServo.class, "br");
-        bl = hardwareMap.get(CRServo.class, "bl");
-
-
-    }
-
-
 
     public void setShootPos(double dist){
         /* dist is the total distance the ball will travel until it hits the ground
@@ -90,7 +57,7 @@ public class ShootSystem {
         shootVel = angleToVel(distToAngle(dist)) * OVERSHOOT_VEL_MULT;
     }
 
-    // Get funcs
+    // GETTERS
 
     public double getAngleEnc(){
         return angleToEncoder(shootAngle);
@@ -116,7 +83,7 @@ public class ShootSystem {
         return retDur;
     }
 
-    // CONVERSIONS FOR SHOOTING
+    // CONVERSIONS
 
     public double distToAngle(double dist){
         return Math.toDegrees(Math.atan(54.88 / (9.8 * dist)));
@@ -137,4 +104,12 @@ public class ShootSystem {
         return angle * ANGLE_CONST * ELBOW_GEAR_RATIO;
     }
 
+    public ShootSystembad(String mode){
+        if (mode.equals("teleop"))
+            this.mode = mode;
+        else if (mode.equals("autonomous"))
+            this.mode = mode;
+        else
+            this.mode = "invalid mode input";
+    }
 }

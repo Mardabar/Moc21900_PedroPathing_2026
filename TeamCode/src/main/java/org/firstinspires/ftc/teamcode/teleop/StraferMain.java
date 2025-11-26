@@ -12,8 +12,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import subsystems.ShootSystem;
-
 @TeleOp(name = "StraferMain")
 public class StraferMain extends LinearOpMode{
     // MOTORS AND SERVOS
@@ -36,6 +34,7 @@ public class StraferMain extends LinearOpMode{
 
     private Limelight3A cam;
     private LLResult camPic;
+
 
     // SPEED AND POSITIONS
 
@@ -575,5 +574,13 @@ public class StraferMain extends LinearOpMode{
             }
             feedTimer.reset();
         }
+    }
+
+    public void updatePos() {
+
+        telemetry.addData("Motor velo: ", ls.getVelocity());
+        telemetry.update();
+
+
     }
 }
