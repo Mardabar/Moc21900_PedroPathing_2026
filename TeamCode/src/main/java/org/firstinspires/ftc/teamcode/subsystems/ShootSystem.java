@@ -1,8 +1,8 @@
-package subsystems;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-public class ShootSystembad {
+public class ShootSystem {
 
     private final String mode;
 
@@ -104,7 +104,7 @@ public class ShootSystembad {
         return angle * ANGLE_CONST * ELBOW_GEAR_RATIO;
     }
 
-    public ShootSystembad(String mode){
+    public ShootSystem(String mode){
         if (mode.equals("teleop"))
             this.mode = mode;
         else if (mode.equals("autonomous"))

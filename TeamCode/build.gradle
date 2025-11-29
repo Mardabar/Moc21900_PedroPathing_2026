@@ -49,14 +49,16 @@ repositories {
 dependencies {
     implementation project(':FtcRobotController')
 
-    implementation 'org.ftclib.ftclib:core:2.1.1'
+
     implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'org.ftclib.ftclib:core:2.1.1' // core
+    
     implementation 'org.openftc:easyopencv:1.7.3'
     //implementation 'com.limelightvision:Limelight-FTC:3.1.0'
 
 
     implementation 'com.acmerobotics.roadrunner:core:1.0.1'
-    implementation "com.bylazar:fullpanels:1.0.7"
+    implementation "com.bylazar:fullpanels:1.0.9"
 
     implementation 'dev.nextftc:ftc:1.0.1'
 

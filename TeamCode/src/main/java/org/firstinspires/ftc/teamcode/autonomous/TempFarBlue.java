@@ -101,6 +101,7 @@ public class TempFarBlue extends OpMode{
         fol = Constants.createFollower(hardwareMap);
         fol.setStartingPose(Start);
 
+
         ls = hardwareMap.get(DcMotorEx.class, "ls");
         rs = hardwareMap.get(DcMotorEx.class, "rs");
         belt = hardwareMap.get(DcMotor.class, "belt");
